@@ -60,7 +60,7 @@ class RegistrationMutation(graphene.Mutation):
 
         return {
             'success': True,
-            'message': f'User with email: {data["email"]} has been created correctly.'
+            'message': f'User with email: {data["email"]} has been created correctly.',
         }
     
 class ResendEmailVerificationTokenMutation(graphene.Mutation):
@@ -107,5 +107,63 @@ class ResendEmailVerificationTokenMutation(graphene.Mutation):
         except ObjectDoesNotExist:
             return {
                 'success': False,
-                'message': f'The user with email: {data["email"]} does not exist.' 
+                'message': f'The user with email: {data["email"]} does not exist.',
+            }
+        
+
+class EmailVerificationMutation(graphene.Mutation):
+    class Arguments:
+        token = graphene.String()
+    
+    class Meta:
+        description = 'Marks the account linked to the token as verified.'
+
+    success = graphene.Boolean()
+    message = graphene.String()
+    internal_message = graphene.String()
+
+    @tryable_mutation(required_fields = ['token'])
+    def mutate(root, info, **data):
+        try:
+            decoded_token: dict = jwt.decode(data['token'], settings.SECRET_KEY, algorithms=['HS256'])
+            if decoded_token.get('email', None) is None:
+                return {
+                    'success': False,
+                    'message': 'The current token has an invalid format. Please request a new one.',
+                }
+            
+            user_record: User = User.objects.get(email = decoded_token['email'])
+
+            if user_record.is_verified:
+                return {
+                    'success': False,
+                    'message': f'The account with email: {decoded_token["email"]} has already been verified.',
+                }
+
+            user_record.is_verified = True
+            user_record.verification_token = None
+
+            user_record.save()
+
+            return {
+                'success': True,
+                'message': f'The account with email: {decoded_token["email"]} has been verified.',
+            }
+        
+        except jwt.ExpiredSignatureError:
+            return {
+                'success': False,
+                'message': 'Cannot verify the account. The token is expired.',
+            }
+        
+        except jwt.InvalidSignatureError:
+            return {
+                'success': False,
+                'message': 'The token couldn\'t be processed. The format is incorrect.',
+            }
+        
+        except ObjectDoesNotExist:
+            return {
+                'success': False,
+                'message': f'The user with email: {decoded_token["email"]} does not exist.',
             }

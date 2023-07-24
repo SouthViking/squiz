@@ -12,8 +12,13 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import os
 from pathlib import Path
 
+from .utils import get_config_values_from_file
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# File for global credentials
+GLOBAL_CONFIG_PATH = os.path.normpath(os.path.join(BASE_DIR, 'credentials.cnf'))
 
 
 # Quick-start development settings - unsuitable for production
@@ -75,13 +80,11 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASE_CONFIG_PATH = os.path.normpath(os.path.join(BASE_DIR, 'db', 'credentials.cnf'))
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'OPTIONS': {
-            'read_default_file': DATABASE_CONFIG_PATH,
+            'read_default_file': GLOBAL_CONFIG_PATH,
         }
     }
 }
@@ -104,6 +107,16 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+PASSWORD_HASHERS = (
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+    'django.contrib.auth.hashers.BCryptPasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.SHA1PasswordHasher',
+    'django.contrib.auth.hashers.MD5PasswordHasher',
+    'django.contrib.auth.hashers.CryptPasswordHasher',
+)
 
 AUTH_USER_MODEL = 'users.User'
 
@@ -135,3 +148,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 GRAPHENE = {
     'SCHEMA': 'core.schema.schema',
 }
+
+# Email sender settings
+
+# config = get_config_values_from_file(os.path.normpath(os.path.join(BASE_DIR, 'credentials', '')))
+
+values = get_config_values_from_file(GLOBAL_CONFIG_PATH, 'email')
+
+EMAIL_HOST = values.get('host', None)
+EMAIL_PORT = values.get('port', None)
+EMAIL_HOST_USER = values.get('user', None)
+EMAIL_HOST_PASSWORD = values.get('password', None)

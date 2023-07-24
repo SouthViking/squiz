@@ -2,6 +2,7 @@ import graphene
 
 from users.schema import (
     RegistrationMutation,
+    ResendEmailVerificationTokenMutation,
 )
 
 class Queries(graphene.ObjectType):
@@ -9,5 +10,6 @@ class Queries(graphene.ObjectType):
 
 class Mutations(graphene.ObjectType):
     registrate_user = RegistrationMutation.Field()
+    resend_email_verification_token = ResendEmailVerificationTokenMutation.Field()
 
 schema = graphene.Schema(query = Queries, mutation = Mutations)

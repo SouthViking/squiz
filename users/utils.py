@@ -1,9 +1,9 @@
 import re
 import jwt
-from datetime import datetime, timedelta
 from django.conf import settings
+from django.core.mail import send_mail
+from datetime import datetime, timedelta, timezone
 from django.core.exceptions import ValidationError
-
 
 def validate_strong_password(password: str):
     # Regular expression that checks whether a password is strong or not based on the following rules:
@@ -18,7 +18,7 @@ def validate_strong_password(password: str):
         raise ValidationError('The provided password is not strong enough.')
     
 def generate_account_verification_token(data):
-    data['iat'] = datetime.now()
-    data['exp'] = datetime.now() + (settings.EMAIL_VERIFICATION_EXP_TIME_DELTA or timedelta(hours=3))
+    data['iat'] = datetime.now(tz = timezone.utc)
+    data['exp'] = datetime.now(tz = timezone.utc) + (settings.EMAIL_VERIFICATION_EXP_TIME_DELTA or timedelta(hours=3))
 
     return jwt.encode(data, settings.SECRET_KEY, algorithm = 'HS256')

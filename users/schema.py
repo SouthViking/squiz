@@ -1,8 +1,11 @@
 import graphene
+from django.conf import settings
+from django.core.mail import send_mail
 from django.core.validators import validate_email
 
 from users.models import User
 from core.decorators import tryable_mutation
+from users.utils import generate_account_verification_token
 
 class RegistrationMutation(graphene.Mutation):
     class Arguments:
@@ -35,6 +38,20 @@ class RegistrationMutation(graphene.Mutation):
             email = data['email'],
             password = data['password'],
         )
+
+        email_verification_token = generate_account_verification_token({ 'email': data['email'] })
+
+        user_record: User = User.objects.get(email = data['email'])
+        user_record.verification_token = email_verification_token
+        user_record.save()
+
+        send_mail(
+            subject = 'Welcome to Squiz!',
+            message = f'Welcome to Squiz! In order to continue using your new account, please verify your email using the following link: https://squiz.com/account/verification/{email_verification_token}',
+            recipient_list = [data['email']],
+            from_email = settings.EMAIL_HOST_USER
+        )
+
 
         return {
             'success': True,

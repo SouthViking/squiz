@@ -22,6 +22,8 @@ class User(AbstractBaseUser):
     email = models.CharField(max_length = 250, unique = True)
     password = models.CharField(max_length = 100, validators = [validate_strong_password])
     created_at = models.DateTimeField(auto_now_add = True)
+    is_verified = models.BooleanField(default = False)
+    verification_token = models.CharField(max_length = 200, null = True, blank = True)
 
     class Meta:
         db_table = 'user'

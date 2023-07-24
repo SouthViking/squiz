@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import os
 from pathlib import Path
+from datetime import timedelta
 
 from .utils import get_config_values_from_file
 
@@ -159,3 +160,7 @@ EMAIL_HOST = values.get('host', None)
 EMAIL_PORT = values.get('port', None)
 EMAIL_HOST_USER = values.get('user', None)
 EMAIL_HOST_PASSWORD = values.get('password', None)
+EMAIL_USE_TLS = bool(values.get('use_tls', False))
+
+# Expiration times defined for the tokens
+EMAIL_VERIFICATION_EXP_TIME_DELTA = timedelta(hours=3)

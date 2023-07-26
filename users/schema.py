@@ -1,14 +1,14 @@
 import jwt
 import graphene
-from datetime import datetime
 from django.conf import settings
 from django.core.mail import send_mail
+from datetime import datetime, timezone
 from django.core.validators import validate_email
 from django.core.exceptions import ObjectDoesNotExist
 
 from users.models import User
 from core.decorators import tryable_mutation
-from users.utils import generate_account_verification_token
+from users.utils import generate_account_verification_token, generate_authentication_tokens
 
 def generate_and_send_email_verification_token(user_email: str):
     verification_token = generate_account_verification_token({ 'email': user_email })
@@ -84,7 +84,7 @@ class ResendEmailVerificationTokenMutation(graphene.Mutation):
                     'message': f'The user with email: {data["email"]} has already been verified.',
                 }
             
-            current_verification_token: dict = jwt.decode(user_record.verification_token, settings.SECRET_KEY, algorithms=['HS256'])
+            current_verification_token: dict = jwt.decode(user_record.verification_token, settings.SECRET_KEY, algorithms = ['HS256'])
             if current_verification_token.get('iat', None) is not None:
                 elapsed_since_iat_mins = int(round((datetime.now() - datetime.fromtimestamp(current_verification_token['iat'])).total_seconds()/60, 0))
 
@@ -125,7 +125,7 @@ class EmailVerificationMutation(graphene.Mutation):
     @tryable_mutation(required_fields = ['token'])
     def mutate(root, info, **data):
         try:
-            decoded_token: dict = jwt.decode(data['token'], settings.SECRET_KEY, algorithms=['HS256'])
+            decoded_token: dict = jwt.decode(data['token'], settings.SECRET_KEY, algorithms = ['HS256'])
             if decoded_token.get('email', None) is None:
                 return {
                     'success': False,
@@ -166,4 +166,87 @@ class EmailVerificationMutation(graphene.Mutation):
             return {
                 'success': False,
                 'message': f'The user with email: {decoded_token["email"]} does not exist.',
+            }
+        
+class AuthenticationTokenResponse(graphene.ObjectType):
+    access_token = graphene.String()
+    refresh_token = graphene.String()
+        
+class UserAuthenticationMutation(graphene.Mutation):
+    class Arguments:
+        email = graphene.String(required = True)
+        password = graphene.String(required = True)
+
+    class Meta:
+        description = 'Executes the authentication process and returns the access and refresh token.'
+
+    success = graphene.Boolean()
+    message = graphene.String()
+    internal_message = graphene.String()
+    tokens = graphene.Field(AuthenticationTokenResponse)
+
+    @tryable_mutation(required_fields = ['email', 'password'])
+    def mutate(root, info, **data):
+        try:
+            user_record: User = User.objects.get(email = data['email'])
+            if not user_record.check_password(data['password']):
+                return {
+                    'success': False,
+                    'message': 'The provided credentials are not valid. Please try again.'
+                }
+            
+            user_record.last_login = datetime.now(tz = timezone.utc)
+            user_record.save(update_fields = ['last_login'])
+            
+            return {
+                'success': True,
+                'message': f'Welcome again {user_record.nickname}!',
+                'tokens': generate_authentication_tokens({ 'email': data['email'] }),
+            }
+
+        except ObjectDoesNotExist:
+            return {
+                'success': False,
+                'message': 'The provided credentials are not valid. Please try again.'
+            }
+
+class TokenRefreshMutation(graphene.Mutation):
+    class Arguments:
+        refresh_token = graphene.String(required = True)
+
+    class Meta:
+        description = 'Generates a new access/refresh token pair by using the current refresh token.'
+
+    success = graphene.Boolean()
+    message = graphene.String()
+    internal_message = graphene.String()
+    tokens = graphene.Field(AuthenticationTokenResponse)
+
+    @tryable_mutation(required_fields = ['refresh_token'])
+    def mutate(root, info, **data):
+        try:
+            decoded_token: dict = jwt.decode(data['refresh_token'], settings.SECRET_KEY, algorithms = ['HS256'])
+            if decoded_token['type'] != 'refresh':
+                return {
+                    'success': False,
+                    'message': 'The token provided is not a valid refresh token.'
+                }
+
+            User.objects.get(email = decoded_token['email'])
+
+            return {
+                'success': True,
+                'tokens': generate_authentication_tokens({ 'email': decoded_token['email'] }),
+            }
+
+        except jwt.ExpiredSignatureError:
+            return {
+                'success': False,
+                'message': 'The refresh token is expired. Please execute the authentication again.'
+            }
+
+        except ObjectDoesNotExist:
+            return {
+                'success': False,
+                'message': 'The source account is not valid.',
             }

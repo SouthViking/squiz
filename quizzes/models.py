@@ -6,6 +6,7 @@ class Quiz(models.Model):
     title = models.CharField(max_length = 50)
     summary = models.TextField()
     max_solving_time_mins = models.IntegerField()
+    is_active = models.BooleanField(default = False)
     is_public = models.BooleanField(default = False)
     is_scheduled = models.BooleanField(default = False)
     starts_at = models.DateTimeField()

@@ -10,7 +10,7 @@ class Quiz(models.Model):
     is_scheduled = models.BooleanField(default = False)
     starts_at = models.DateTimeField()
     deadline = models.DateTimeField()
-    created_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add = True)
     creator = models.ForeignKey(User, on_delete = models.CASCADE)
 
     class Meta:

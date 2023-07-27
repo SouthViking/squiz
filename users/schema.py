@@ -84,17 +84,18 @@ class ResendEmailVerificationTokenMutation(graphene.Mutation):
                     'message': f'The user with email: {data["email"]} has already been verified.',
                 }
             
-            current_verification_token: dict = jwt.decode(user_record.verification_token, settings.SECRET_KEY, algorithms = ['HS256'])
-            if current_verification_token.get('iat', None) is not None:
-                elapsed_since_iat_mins = int(round((datetime.now() - datetime.fromtimestamp(current_verification_token['iat'])).total_seconds()/60, 0))
+            if user_record.verification_token is not None:
+                current_verification_token: dict = jwt.decode(user_record.verification_token, settings.SECRET_KEY, algorithms = ['HS256'])
+                if current_verification_token.get('iat', None) is not None:
+                    elapsed_since_iat_mins = int(round((datetime.now() - datetime.fromtimestamp(current_verification_token['iat'])).total_seconds()/60, 0))
 
-                if elapsed_since_iat_mins < settings.EMAIL_VERIFICATION_MIN_GAP_MINS:
-                    remaining_time_mins = settings.EMAIL_VERIFICATION_MIN_GAP_MINS - elapsed_since_iat_mins
+                    if elapsed_since_iat_mins < settings.EMAIL_VERIFICATION_MIN_GAP_MINS:
+                        remaining_time_mins = settings.EMAIL_VERIFICATION_MIN_GAP_MINS - elapsed_since_iat_mins
 
-                    return {
-                        'success': False,
-                        'message': f'A verification email was already sent {elapsed_since_iat_mins} minutes ago. You can request again in {remaining_time_mins} mins more.'
-                    }
+                        return {
+                            'success': False,
+                            'message': f'A verification email was already sent {elapsed_since_iat_mins} minutes ago. You can request again in more {remaining_time_mins} mins.'
+                        }
 
             
             generate_and_send_email_verification_token(data['email'])
@@ -226,7 +227,7 @@ class TokenRefreshMutation(graphene.Mutation):
     def mutate(root, info, **data):
         try:
             decoded_token: dict = jwt.decode(data['refresh_token'], settings.SECRET_KEY, algorithms = ['HS256'])
-            if decoded_token['type'] != 'refresh':
+            if decoded_token.get('type', None) != 'refresh':
                 return {
                     'success': False,
                     'message': 'The token provided is not a valid refresh token.'

@@ -1,6 +1,7 @@
 from typing import List, Union
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 
+from users.models import User
 from .utils import get_empty_entries, camelize_list
 
 def tryable_mutation(required_fields: Union[List[str], None] = None):
@@ -39,3 +40,35 @@ def tryable_mutation(required_fields: Union[List[str], None] = None):
             
         return wrapper
     return decorator
+
+def authentication_required_mutation(func):
+    """Verifies if the access token was provided and if the user is available before executing the mutator"""
+    def wrapper(*args, **kwargs):
+        graphql_context: dict = args[1].context
+
+        if graphql_context.get('token_data', None) is None:
+            return {
+                'success': False,
+                'message': 'Access token not provided.'
+            }
+        
+        if graphql_context['token_data'].get('type', None) != 'access':
+            return {
+                'success': False,
+                'message': 'The provided token is not an access token.',
+            }
+        
+        try:
+            user_record: User = User.objects.get(email = graphql_context['token_data']['email'])
+            # Adding the id to the context data so its easier and more efficient when trying to fetch from the mutators.
+            args[1].context['user_id'] = user_record.id
+
+        except ObjectDoesNotExist:
+            return {
+                'success': False,
+                'message': 'The user account related to the access token is no longer valid.',
+            }
+
+        return func(*args, **kwargs)
+
+    return wrapper

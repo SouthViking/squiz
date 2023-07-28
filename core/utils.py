@@ -1,6 +1,9 @@
+import jwt
 import humps
 import configparser
-from typing import List, Any, Dict
+from django.conf import settings
+from django.http import HttpRequest
+from typing import List, Any, Dict, Union
 
 def get_empty_entries(object: dict, target_keys: List[str]) -> List[str]:
     empty_entries = []
@@ -29,3 +32,19 @@ def get_config_values_from_file(filepath: str, section_name: str) -> Dict[str, A
         print(error)
 
         return {}
+    
+def get_decoded_access_token_from_request(request: HttpRequest) -> Union[str, None]:
+    if not hasattr(request, 'META') or request.META.get('HTTP_AUTHORIZATION', None) is None:
+        return None
+
+    parts: List[str] = request.META['HTTP_AUTHORIZATION'].split('Bearer ')
+    if len(parts) != 2:
+        return None
+
+    try:
+        # Executing the decoding process, so it can throw an error in case the token is invalid.
+        decoded = jwt.decode(parts[1], settings.SECRET_KEY, algorithms = ['HS256'])  
+        return decoded
+
+    except jwt.InvalidTokenError as error:
+        raise error

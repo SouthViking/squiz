@@ -36,4 +36,4 @@ class Option(models.Model):
     question = models.ForeignKey(Question, on_delete = models.CASCADE)
 
     class Meta:
-        db_table = 'quiz_option'
+        db_table = 'question_option'

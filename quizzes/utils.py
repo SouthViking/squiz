@@ -1,5 +1,5 @@
+from datetime import datetime
 from typing import Tuple, Union
-from datetime import datetime, timezone
 
 def is_quiz_time_interval_valid(starts_at: datetime, ends_at: datetime, max_solving_mins: int) -> Tuple[bool, Union[str, None]]:
     starts_at = starts_at.replace(tzinfo = None)

@@ -32,7 +32,7 @@ def generate_authentication_tokens(data: dict):
 def generate_and_send_email_verification_token(user_email: str):
     verification_token = generate_account_verification_token({ 'email': user_email })
 
-    user_record = User.objects.get(email = user_email)
+    user_record: User = User.objects.get(email = user_email)
     user_record.verification_token = verification_token
     user_record.save()
 

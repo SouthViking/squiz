@@ -22,6 +22,7 @@ class User(AbstractBaseUser):
     email = models.CharField(max_length = 250, unique = True)
     password = models.CharField(max_length = 100, validators = [validate_strong_password])
     created_at = models.DateTimeField(auto_now_add = True)
+    # Flag that allows to remove the account in case it hasn't been verified before the defined time.
     is_verified = models.BooleanField(default = False)
     verification_token = models.CharField(max_length = 200, null = True, blank = True)
 

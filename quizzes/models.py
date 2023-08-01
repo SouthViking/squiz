@@ -5,7 +5,9 @@ from users.models import User
 class Quiz(models.Model):
     title = models.CharField(max_length = 50)
     summary = models.TextField()
+    # Max window time (in minutes) to solve the quiz within the start and deadline time.
     max_solving_time_mins = models.IntegerField()
+    # This field is supposed to be managed automatically by the scheduler in case the quiz was scheduled.
     is_active = models.BooleanField(default = False)
     is_public = models.BooleanField(default = False)
     is_scheduled = models.BooleanField(default = False)
@@ -29,6 +31,7 @@ class Question(models.Model):
 class Option(models.Model):
     label = models.CharField(max_length = 100)
     is_correct = models.BooleanField(default = False)
+    # Message that can be displayed in the frontend after the user finishes the quiz.
     feedback_message = models.CharField(max_length = 250)
     question = models.ForeignKey(Question, on_delete = models.CASCADE)
 

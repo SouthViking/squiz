@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from users.models import User
 from .utils import get_empty_entries, camelize_list
 
-def tryable_mutation(required_fields: Union[List[str], None] = None):
+def tryable_mutation(required_fields: Union[List[str], None] = []):
     """
     Adds a try/except wrapper to the target function and returns error messages for some common exceptions.
 

@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
-from .utils import validate_strong_password, generate_account_verification_token
+from .validators import validate_strong_password
 
 class UserManager(BaseUserManager):
     def create(self, **kwargs):

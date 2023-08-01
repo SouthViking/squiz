@@ -1,6 +1,6 @@
 import graphene
 
-from users.schema import (
+from users.mutators import (
     RegistrationMutation,
     ResendEmailVerificationTokenMutation,
     EmailVerificationMutation,
@@ -8,12 +8,15 @@ from users.schema import (
     TokenRefreshMutation,
 )
 
-from quizzes.mutators.quizz import (
+from quizzes.mutators import (
     QuizCreationMutation,
+    QuizUpdateMutation,
+    QuestionCreationMutation,
+    QuestionUpdateMutation,
 )
 
 class Queries(graphene.ObjectType):
-    hello = graphene.String(default_value = 'Hi!')
+    bar = graphene.String(default_value = 'foo')
 
 class Mutations(graphene.ObjectType):
     registrate_user = RegistrationMutation.Field()
@@ -23,5 +26,9 @@ class Mutations(graphene.ObjectType):
     token_refresh = TokenRefreshMutation.Field()
 
     create_quiz = QuizCreationMutation.Field()
+    update_quiz = QuizUpdateMutation.Field()
+
+    create_question = QuestionCreationMutation.Field()
+    update_question = QuestionUpdateMutation.Field()
 
 schema = graphene.Schema(query = Queries, mutation = Mutations)

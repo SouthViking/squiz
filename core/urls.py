@@ -21,5 +21,5 @@ from .views import graphql_executor_view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('graphql', graphql_executor_view)
+    path('graphql', graphql_executor_view),
 ]

@@ -30,7 +30,8 @@ class UserAuthenticationMutation(graphene.Mutation, BaseMutationResult):
             if not user_record.check_password(data['password']):
                 return {
                     'success': False,
-                    'message': 'The provided credentials are not valid. Please try again.'
+                    'message': 'The provided credentials are not valid. Please try again.',
+                    'status_code': 401,
                 }
             
             user_record.last_login = datetime.now(tz = timezone.utc)
@@ -40,12 +41,14 @@ class UserAuthenticationMutation(graphene.Mutation, BaseMutationResult):
                 'success': True,
                 'message': f'Welcome again {user_record.nickname}!',
                 'tokens': generate_authentication_tokens({ 'email': data['email'] }),
+                'status_code': 200,
             }
 
         except ObjectDoesNotExist:
             return {
                 'success': False,
-                'message': 'The provided credentials are not valid. Please try again.'
+                'message': 'The provided credentials are not valid. Please try again.',
+                'status_code': 401,
             }
         
 
@@ -65,7 +68,8 @@ class TokenRefreshMutation(graphene.Mutation, BaseMutationResult):
             if decoded_token.get('type', None) != 'refresh':
                 return {
                     'success': False,
-                    'message': 'The token provided is not a valid refresh token.'
+                    'message': 'The token provided is not a valid refresh token.',
+                    'status_code': 400,
                 }
 
             User.objects.get(email = decoded_token['email'])
@@ -73,16 +77,19 @@ class TokenRefreshMutation(graphene.Mutation, BaseMutationResult):
             return {
                 'success': True,
                 'tokens': generate_authentication_tokens({ 'email': decoded_token['email'] }),
+                'status_code': 200,
             }
 
         except jwt.ExpiredSignatureError:
             return {
                 'success': False,
-                'message': 'The refresh token is expired. Please execute the authentication again.'
+                'message': 'The refresh token is expired. Please execute the authentication again.',
+                'status_code': 401,
             }
 
         except ObjectDoesNotExist:
             return {
                 'success': False,
                 'message': 'The source account is not valid.',
+                'status_code': 404,
             }

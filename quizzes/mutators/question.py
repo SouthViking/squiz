@@ -33,12 +33,14 @@ class QuestionCreationMutation(graphene.Mutation, BaseMutationResult):
                 return {
                     'success': False,
                     'message': 'Cannot add the question to the quiz. The operation is not allowed.',
+                    'status_code': 403,
                 }
             
             if quiz_record.is_active:
                 return {
                     'success': False,
                     'message': 'Cannot add the question to the quiz. The quiz is currently active.',
+                    'status_code': 409,
                 }
             try:
                 with transaction.atomic():
@@ -68,6 +70,7 @@ class QuestionCreationMutation(graphene.Mutation, BaseMutationResult):
                     'success': False,
                     'message': 'There has been an internal error while trying to create the question/options.',
                     'internalMessage': str(error),
+                    'status_code': 500,
                 }
 
 
@@ -75,11 +78,13 @@ class QuestionCreationMutation(graphene.Mutation, BaseMutationResult):
             return {
                 'success': False,
                 'message': f'Quiz with ID {data["quiz_id"]} not found.',
+                'status_code': 404,
             }
 
         return {
             'success': True,
             'message': 'The question has been added to the quiz.',
+            'status_code': 201,
         }
     
 class QuestionUpdateMutation(graphene.Mutation, BaseMutationResult):
@@ -101,6 +106,7 @@ class QuestionUpdateMutation(graphene.Mutation, BaseMutationResult):
                 return {
                     'success': False,
                     'message': 'The question cannot be modified. Operation not allowed.',
+                    'status_code': 403,
                 }
             
             updated_fields = []
@@ -133,6 +139,7 @@ class QuestionUpdateMutation(graphene.Mutation, BaseMutationResult):
                 'message': 'The question has been updated.',
                 'updated_fields': updated_fields,
                 'fields_with_error': fields_with_error,
+                'status_code': 200,
             }
 
 
@@ -140,6 +147,7 @@ class QuestionUpdateMutation(graphene.Mutation, BaseMutationResult):
             return {
                 'success': False,
                 'message': 'The target question does not exist.',
+                'status_code': 404,
             }
         
 class QuestionDeleteMutation(graphene.Mutation, BaseMutationResult):
@@ -158,12 +166,14 @@ class QuestionDeleteMutation(graphene.Mutation, BaseMutationResult):
                 return {
                     'success': False,
                     'message': 'The question cannot be deleted. Operation not allowed.',
+                    'status_code': 403,
                 }
             
             if question_record.quiz.is_active:
                 return {
                     'success': False,
                     'message': 'Cannot delete the question. The quiz is currently active.',
+                    'status_code': 409,
                 }
             
             # TODO: If there are user answers, then remove those from the table as well.
@@ -175,10 +185,12 @@ class QuestionDeleteMutation(graphene.Mutation, BaseMutationResult):
         except ObjectDoesNotExist:
             return {
                 'success': False,
-                'message': 'The target question does not exist'
+                'message': 'The target question does not exist',
+                'status_code': 404,
             }
 
         return {
             'success': True,
             'message': f'The question has been removed from the quiz "{question_record.quiz.title}"',
+            'status_code': 200,
         }

@@ -24,12 +24,14 @@ class AddOptionToQuestionMutation(graphene.Mutation, BaseMutationResult):
                 return {
                     'success': False,
                     'message': 'Cannot add the option to the question. Operation not allowed',
+                    'status_code': 403,
                 }
 
             if question_record.quiz.is_active:
                 return {
                     'success': False,
                     'message': 'Cannot add the option to the question. The quiz is currently active.',
+                    'status_code': 409,
                 }
             
             if data.get('is_correct', False):
@@ -42,6 +44,7 @@ class AddOptionToQuestionMutation(graphene.Mutation, BaseMutationResult):
                 return {
                     'success': False,
                     'message': 'There can only be 1 correct option per question.',
+                    'status_code': 409,
                 }
             
             new_option = Option(
@@ -56,11 +59,13 @@ class AddOptionToQuestionMutation(graphene.Mutation, BaseMutationResult):
                 'success': True,
                 'message': 'The option has been added to the question.',
                 'option_id': new_option.id,
+                'status_code': 201,
             }
         except ObjectDoesNotExist:
             return {
                 'success': False,
                 'message': 'The question is not available.',
+                'status_code': 404,
             }
         
 class SetCorrectOptionMutation(graphene.Mutation, BaseMutationResult):
@@ -76,6 +81,7 @@ class SetCorrectOptionMutation(graphene.Mutation, BaseMutationResult):
                 return {
                     'success': False,
                     'message': 'Cannot update the options while the quiz is active.',
+                    'status_code': 409,
                 }
 
             correct_option_filter = Option.objects.filter(question_id = option_record.question.id).filter(is_correct = True)\
@@ -95,10 +101,12 @@ class SetCorrectOptionMutation(graphene.Mutation, BaseMutationResult):
             return {
                 'success': True,
                 'message': 'The option has been marked as the correct one.',
+                'status_code': 200,
             }
 
         except ObjectDoesNotExist:
             return {
                 'success': False,
                 'message': 'The option is not available.',
+                'status_code': 404,
             }

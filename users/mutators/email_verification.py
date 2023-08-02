@@ -24,6 +24,7 @@ class EmailVerificationMutation(graphene.Mutation, BaseMutationResult):
                 return {
                     'success': False,
                     'message': 'The current token has an invalid format. Please request a new one.',
+                    'status_code': 400,
                 }
             
             user_record: User = User.objects.get(email = decoded_token['email'])
@@ -32,6 +33,7 @@ class EmailVerificationMutation(graphene.Mutation, BaseMutationResult):
                 return {
                     'success': False,
                     'message': f'The account with email: {decoded_token["email"]} has already been verified.',
+                    'status_code': 409,
                 }
 
             user_record.is_verified = True
@@ -42,24 +44,28 @@ class EmailVerificationMutation(graphene.Mutation, BaseMutationResult):
             return {
                 'success': True,
                 'message': f'The account with email: {decoded_token["email"]} has been verified.',
+                'status_code': 200,
             }
         
         except jwt.ExpiredSignatureError:
             return {
                 'success': False,
                 'message': 'Cannot verify the account. The token is expired.',
+                'status_code': 401,
             }
         
         except jwt.InvalidSignatureError:
             return {
                 'success': False,
                 'message': 'The token couldn\'t be processed. The format is incorrect.',
+                'status_code': 400,
             }
         
         except ObjectDoesNotExist:
             return {
                 'success': False,
                 'message': f'The user with email: {decoded_token["email"]} does not exist.',
+                'status_code': 404,
             }
         
 class ResendEmailVerificationTokenMutation(graphene.Mutation, BaseMutationResult):
@@ -77,6 +83,7 @@ class ResendEmailVerificationTokenMutation(graphene.Mutation, BaseMutationResult
                 return {
                     'success': False,
                     'message': f'The user with email: {data["email"]} has already been verified.',
+                    'status_code': 409,
                 }
             
             if user_record.verification_token is not None:
@@ -89,7 +96,8 @@ class ResendEmailVerificationTokenMutation(graphene.Mutation, BaseMutationResult
 
                         return {
                             'success': False,
-                            'message': f'A verification email was already sent {elapsed_since_iat_mins} minutes ago. You can request again in more {remaining_time_mins} mins.'
+                            'message': f'A verification email was already sent {elapsed_since_iat_mins} minutes ago. You can request again in more {remaining_time_mins} mins.',
+                            'status_code': 409,
                         }
 
             
@@ -98,10 +106,12 @@ class ResendEmailVerificationTokenMutation(graphene.Mutation, BaseMutationResult
             return {
                 'success': True,
                 'message': f'A new verification link has been sent to the email: {data["email"]}',
+                'status_code': 200,
             }
 
         except ObjectDoesNotExist:
             return {
                 'success': False,
                 'message': f'The user with email: {data["email"]} does not exist.',
+                'status_code': 404,
             }

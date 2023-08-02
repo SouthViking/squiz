@@ -19,7 +19,8 @@ def tryable_mutation(required_fields: Union[List[str], None] = []):
                     camelize_list(empty_keys)
                     return {
                         'success': False,
-                        'message': f'The following fields are empty or haven\'t been specified: {", ".join(empty_keys)}.'
+                        'message': f'The following fields are empty or haven\'t been specified: {", ".join(empty_keys)}.',
+                        'status_code': 400,
                     }
 
                 return func(*args, **kwargs)
@@ -29,6 +30,7 @@ def tryable_mutation(required_fields: Union[List[str], None] = []):
                     'success': False,
                     'message': 'There has been a validation error while trying to register the user. Check the required fields and try again.',
                     'internal_message': str(error.error_dict),
+                    'status_code': 400,
                 }
 
             except Exception as error:
@@ -36,6 +38,7 @@ def tryable_mutation(required_fields: Union[List[str], None] = []):
                     'success': False,
                     'message': 'There has been an internal error. Please try again later.',
                     'internal_message': str(error),
+                    'status_code': 500,
                 }
             
         return wrapper
@@ -49,13 +52,15 @@ def authentication_required_mutation(func):
         if graphql_context.get('token_data', None) is None:
             return {
                 'success': False,
-                'message': 'Access token not provided.'
+                'message': 'Access token not provided.',
+                'status_code': 401,
             }
         
         if graphql_context['token_data'].get('type', None) != 'access':
             return {
                 'success': False,
                 'message': 'The provided token is not an access token.',
+                'status_code': 400,
             }
         
         try:
@@ -67,6 +72,7 @@ def authentication_required_mutation(func):
             return {
                 'success': False,
                 'message': 'The user account related to the access token is no longer valid.',
+                'status_code': 404,
             }
 
         return func(*args, **kwargs)

@@ -23,6 +23,7 @@ class RegistrationMutation(graphene.Mutation, BaseMutationResult):
             return {
                 'success': False,
                 'message': f'A user with email {data["email"]} has already been registered in the platform.',
+                'status_code': 409,
             }
         
         validate_email(data['email'])
@@ -39,4 +40,5 @@ class RegistrationMutation(graphene.Mutation, BaseMutationResult):
         return {
             'success': True,
             'message': f'User with email: {data["email"]} has been created correctly.',
+            'status_code': 201,
         }

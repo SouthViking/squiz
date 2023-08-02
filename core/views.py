@@ -31,4 +31,5 @@ def graphql_executor_view(request: HttpRequest) -> JsonResponse:
             'success': False,
             'message': 'There has been an internal error. Please try again later.',
             'internal_message': str(error),
+            'status_code': 500,
         })

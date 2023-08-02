@@ -45,6 +45,7 @@ class QuizCreationMutation(graphene.Mutation, BaseMutationResult):
             return {
                 'success': False,
                 'message': f'The quiz date and times are not valid: {error}',
+                'status_code': 400,
             }
 
         new_quiz = Quiz(
@@ -65,6 +66,7 @@ class QuizCreationMutation(graphene.Mutation, BaseMutationResult):
             'success': True,
             'message': f'The quiz \"{new_quiz.title}\" has been created correctly.',
             'quiz': new_quiz,
+            'status_code': 201,
         }
 
 class QuizUpdateMutation(graphene.Mutation, BaseMutationResult):
@@ -94,6 +96,7 @@ class QuizUpdateMutation(graphene.Mutation, BaseMutationResult):
                 return {
                     'success': False,
                     'message': 'Cannot update the quiz. Operation not allowed.',
+                    'status_code': 403,
                 }
             
             for field in data:
@@ -128,10 +131,12 @@ class QuizUpdateMutation(graphene.Mutation, BaseMutationResult):
                 'updated_fields': updated_fields,
                 'fields_with_error': fields_with_error,
                 'quiz': quiz_record,
+                'status_code': 200,
             }
 
         except ObjectDoesNotExist:
             return {
                 'success': False,
                 'message': 'The target quiz does not exist.',
+                'status_code': 404,
             }

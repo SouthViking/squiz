@@ -1,3 +1,3 @@
 from .quiz import QuizCreationMutation, QuizUpdateMutation
-from .question import QuestionCreationMutation, QuestionUpdateMutation
 from .option import AddOptionToQuestionMutation, SetCorrectOptionMutation
+from .question import QuestionCreationMutation, QuestionUpdateMutation, QuestionDeleteMutation

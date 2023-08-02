@@ -141,3 +141,44 @@ class QuestionUpdateMutation(graphene.Mutation, BaseMutationResult):
                 'success': False,
                 'message': 'The target question does not exist.',
             }
+        
+class QuestionDeleteMutation(graphene.Mutation, BaseMutationResult):
+    class Arguments:
+        question_id = graphene.Int()
+    
+    class Meta:
+        description = 'Deletes a question with its options from a quiz.'
+    
+    @authentication_required_mutation
+    @tryable_mutation()
+    def mutate(root, info, **data):
+        try:
+            question_record = Question.objects.get(id = data['question_id'])
+            if question_record.quiz.creator.id != info.context['user_id']:
+                return {
+                    'success': False,
+                    'message': 'The question cannot be deleted. Operation not allowed.',
+                }
+            
+            if question_record.quiz.is_active:
+                return {
+                    'success': False,
+                    'message': 'Cannot delete the question. The quiz is currently active.',
+                }
+            
+            # TODO: If there are user answers, then remove those from the table as well.
+
+            # Since there is a foreign key to the question in the option table, then the deletion will cascade.
+            question_record.delete()
+
+
+        except ObjectDoesNotExist:
+            return {
+                'success': False,
+                'message': 'The target question does not exist'
+            }
+
+        return {
+            'success': True,
+            'message': f'The question has been removed from the quiz "{question_record.quiz.title}"',
+        }

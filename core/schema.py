@@ -14,7 +14,8 @@ from quizzes.mutators import (
     QuestionCreationMutation,
     QuestionUpdateMutation,
     AddOptionToQuestionMutation,
-    SetCorrectOptionMutation
+    SetCorrectOptionMutation,
+    QuestionDeleteMutation,
 )
 
 class Queries(graphene.ObjectType):
@@ -32,6 +33,7 @@ class Mutations(graphene.ObjectType):
 
     create_question = QuestionCreationMutation.Field()
     update_question = QuestionUpdateMutation.Field()
+    delete_question = QuestionDeleteMutation.Field()
 
     add_option_to_question = AddOptionToQuestionMutation.Field()
     set_correct_option = SetCorrectOptionMutation.Field()

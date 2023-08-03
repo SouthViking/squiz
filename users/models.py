@@ -26,7 +26,8 @@ class User(AbstractBaseUser):
     is_verified = models.BooleanField(default = False)
     verification_token = models.CharField(max_length = 200, null = True, blank = True)
 
-    quiz_answers = models.ManyToManyField('quizzes.Quiz', through = 'quizzes.UserQuiz')
+    solved_quizzes = models.ManyToManyField('quizzes.Quiz', through = 'quizzes.UserQuiz')
+    selections = models.ManyToManyField('quizzes.Option', through = 'quizzes.UserSelection')
 
     class Meta:
         db_table = 'user'

@@ -15,6 +15,7 @@ class Quiz(models.Model):
     deadline = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add = True)
     creator = models.ForeignKey(User, on_delete = models.CASCADE)
+    draft_mode = models.BooleanField(default = True)
 
     class Meta:
         db_table = 'quiz'

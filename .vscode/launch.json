@@ -5,12 +5,24 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Django",
+            "name": "Run server",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}\\manage.py",
             "args": [
-                "runserver"
+                "runserver",
+            ],
+            "django": true,
+            "justMyCode": true
+        },
+        {
+            "name": "Run server (without reload)",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}\\manage.py",
+            "args": [
+                "runserver",
+                "--noreload"
             ],
             "django": true,
             "justMyCode": true

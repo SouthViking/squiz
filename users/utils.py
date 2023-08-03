@@ -7,7 +7,7 @@ from users.models import User
     
 def generate_account_verification_token(data: dict):
     data['iat'] = datetime.now(tz = timezone.utc)
-    data['exp'] = datetime.now(tz = timezone.utc) + (settings.EMAIL_VERIFICATION_EXP_TIME_DELTA or timedelta(hours=3))
+    data['exp'] = datetime.now(tz = timezone.utc) + timedelta(hours = settings.EMAIL_VERIFICATION_EXPIRATION_MAX_HRS)
 
     return jwt.encode(data, settings.SECRET_KEY, algorithm = 'HS256')
 

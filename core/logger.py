@@ -53,3 +53,5 @@ class Logger:
     def error(self, text: str) -> None:
         log = self.generate_base_log(text, LogType.ERROR)
         print(log)
+
+logger = Logger(None, { 'buffer': None })

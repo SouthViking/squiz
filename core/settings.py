@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'users',
     'quizzes',
     'graphene_django',
+    'scheduler',
 ]
 
 MIDDLEWARE = [
@@ -167,6 +168,6 @@ EMAIL_HOST_PASSWORD = values.get('password', None)
 EMAIL_USE_TLS = bool(values.get('use_tls', False))
 
 # Expiration times defined for the tokens
-EMAIL_VERIFICATION_EXP_TIME_DELTA = timedelta(hours = 3)
+EMAIL_VERIFICATION_EXPIRATION_MAX_HRS = 3
 # The window of time to wait before resending a verification email to avoid spam.
 EMAIL_VERIFICATION_MIN_GAP_MINS = 5

@@ -1,6 +1,7 @@
-from typing import List, Union
+from typing import List, Union, Callable
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 
+from .logger import logger
 from users.models import User
 from .utils import get_empty_entries, camelize_list
 
@@ -76,5 +77,15 @@ def authentication_required_mutation(func):
             }
 
         return func(*args, **kwargs)
+
+    return wrapper
+
+
+def tryable_function(func: Callable) -> Callable:
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as error:
+            logger.error(f'Got the following error for function {func.__name__}: {str(error)}')
 
     return wrapper

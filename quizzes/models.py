@@ -37,3 +37,13 @@ class Option(models.Model):
 
     class Meta:
         db_table = 'question_option'
+
+class UserQuiz(models.Model):
+    user = models.ForeignKey(User, on_delete = models.CASCADE)
+    quiz = models.ForeignKey(Quiz, on_delete = models.CASCADE)
+    started_at = models.DateTimeField(auto_now_add = True)
+    finished_at = models.DateTimeField()
+    total_score = models.IntegerField()
+
+    class Meta:
+        db_table = 'user_quiz'

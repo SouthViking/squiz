@@ -5,6 +5,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from users.models import User
 from quizzes.models import Quiz
 from core.utils import camelize_list
+from scheduler.scheduler import scheduler
+from quizzes.jobs import quiz_activation_job, quiz_deactivation_job
 from core.graphene.common import BaseMutationResult, FieldUpdateErrorInfo
 from core.decorators import tryable_mutation, authentication_required_mutation
 from quizzes.utils import is_quiz_time_interval_valid, is_solving_time_in_between_datetimes
@@ -29,6 +31,7 @@ class QuizCreationMutation(graphene.Mutation, BaseMutationResult):
         is_scheduled = graphene.Boolean()
         starts_at = graphene.DateTime()
         deadline = graphene.DateTime()
+        draft_mode = graphene.Boolean()
 
     class Meta:
         description = 'Creates a new base quiz.'
@@ -60,7 +63,20 @@ class QuizCreationMutation(graphene.Mutation, BaseMutationResult):
         )
         new_quiz.save()
         
-        # TODO: Scheduling process for quizzes that have 'is_scheduled' = True.
+        if data.get('is_scheduled', False) and not data.get('draft_mode', True):
+            # If the quiz is in 'draft mode', then it means that in the client side can still be edited
+            # so shouldn't be prepared to be published until the flag is manually changed.
+            scheduler.add_datetime_based_jobs([{
+                'func': quiz_activation_job,
+                'id': f'quiz-{new_quiz.id}-activation-job',
+                'args': [new_quiz.id],
+                'run_date': new_quiz.starts_at.replace(microsecond = 0)
+            }, {
+                'func': quiz_deactivation_job,
+                'id': f'quiz-{new_quiz.id}-deactivation-job',
+                'args': [new_quiz.id],
+                'run_date': new_quiz.deadline.replace(microsecond = 0)
+            }])
 
         return {
             'success': True,

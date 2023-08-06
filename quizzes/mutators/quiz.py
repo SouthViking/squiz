@@ -60,6 +60,7 @@ class QuizCreationMutation(graphene.Mutation, BaseMutationResult):
             starts_at = data['starts_at'],
             deadline = data['deadline'],
             creator = User.objects.get(id = user_id),
+            draft_mode = data.get('draft_mode', True),
         )
         new_quiz.save()
         

@@ -10,7 +10,7 @@ class Quiz(models.Model):
     # This field is supposed to be managed automatically by the scheduler in case the quiz was scheduled.
     is_active = models.BooleanField(default = False)
     is_public = models.BooleanField(default = False)
-    is_scheduled = models.BooleanField(default = False)
+    use_scheduling = models.BooleanField(default = False)
     starts_at = models.DateTimeField()
     deadline = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add = True)

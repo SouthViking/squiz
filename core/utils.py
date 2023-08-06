@@ -48,3 +48,13 @@ def get_decoded_access_token_from_request(request: HttpRequest) -> Union[str, No
 
     except jwt.InvalidTokenError as error:
         raise error
+
+
+def import_from_module(module: str, name: str):
+    try:
+        module = __import__(module, fromlist = [name])
+        return getattr(module, name)
+    
+    except (AttributeError, ModuleNotFoundError):
+        return None
+    

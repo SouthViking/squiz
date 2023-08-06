@@ -1,8 +1,10 @@
 from typing import List, Union
+from django.conf import settings
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from core.logger import Logger
-from .types import IntervalJobDefinition, DateTimeBasedJobDefinition, JobType
+from core.utils import import_from_module
+from .types import IntervalJobDefinition, DateTimeBasedJobDefinition, JobType, AppJobsConfig
 
 class Scheduler:
     def __init__(self):
@@ -10,13 +12,48 @@ class Scheduler:
         self.logger = Logger('GlobalScheduler', { 'buffer': None })
 
     def start(self):
-        from users.jobs import interval_jobs as user_interval_jobs
-
-        self.add_interval_jobs(user_interval_jobs)
+        self.load_initial_jobs()
 
         self.logger.debug('Starting scheduler.')
         self.scheduler.start()
         self.logger.debug('Scheduler has started without issues.')
+
+    def load_initial_jobs(self):
+        self.logger.debug(f'Adding initial job configuration for apps: {settings.CUSTOM_APPS}')
+        loaded_jobs = {}
+
+        for app_name in settings.CUSTOM_APPS:
+            loaded_jobs[app_name] = []       
+            try:
+                initial_jobs_config: Union[AppJobsConfig, bool] = import_from_module(f'{app_name}.jobs', 'initial_jobs_config')
+                if initial_jobs_config is None:
+                    self.logger.warn(f'Could not import initial job definitions for app: {app_name}. Likely because they are not defined.')
+                    continue
+
+                job_definitions = initial_jobs_config.get('on_start_up_jobs', {})
+
+                for job in job_definitions.get('interval_jobs', []):
+                    self.add_job(JobType.INTERVAL, job)
+                    loaded_jobs[app_name].append(job['id'])
+
+                for job in job_definitions.get('datetime_jobs', []):
+                    self.add_job(JobType.DATETIME, job)
+                    loaded_jobs[app_name].append(job['id'])
+
+                app_start_up_callbacks = initial_jobs_config.get('on_start_up_callbacks', [])
+                self.logger.debug(f'Found {len(app_start_up_callbacks)} callbacks to execute on startup.')
+                
+                for start_up_callback in app_start_up_callbacks:
+                    self.logger.debug(f'Executing callback: {start_up_callback.__name__} for app {app_name}')
+                    start_up_callback(self)
+
+            except Exception as error:
+                self.logger.error(f'Got the following error after trying to import jobs configuration from app: {app_name}.')
+                self.logger.error(f'Error: {str(error)}')
+
+        self.logger.debug('------ Loaded jobs:')
+        self.logger.debug(str(loaded_jobs))
+
 
     def add_job(self, type: JobType, job: Union[IntervalJobDefinition, DateTimeBasedJobDefinition]):
         from core.decorators import tryable_function

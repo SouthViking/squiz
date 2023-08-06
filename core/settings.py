@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     'scheduler',
 ]
 
+CUSTOM_APPS = ['users', 'quizzes']
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

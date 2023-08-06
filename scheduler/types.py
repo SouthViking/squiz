@@ -18,3 +18,11 @@ class IntervalJobDefinition(JobDefinition):
 
 class DateTimeBasedJobDefinition(JobDefinition):
     run_date: datetime
+
+class JobDefinitionsPerType(TypedDict):
+    interval_jobs: List[IntervalJobDefinition]
+    datetime_jobs: List[DateTimeBasedJobDefinition]
+
+class AppJobsConfig(TypedDict):
+    on_start_up_jobs: JobDefinitionsPerType
+    on_start_up_callbacks: List[Callable]

@@ -1,11 +1,10 @@
 # Definitions of the functions that will be executed by the global scheduler.
-from typing import List
 from datetime import datetime
 from django.conf import settings
 
 from .models import User
 from core.logger import logger
-from scheduler.types import IntervalJobDefinition
+from scheduler.types import AppJobsConfig
 
 def remove_expired_unverified_accounts():
     logger.info('Executing process to remove unverified accounts.')
@@ -26,10 +25,15 @@ def remove_expired_unverified_accounts():
 
         logger.info(f'Account with email {account["email"]} has been removed correctly.')
 
-interval_jobs: List[IntervalJobDefinition] = [
-    {
-        'func': remove_expired_unverified_accounts,
-        'id': 'remove_expired_unverified_accounts',
-        'seconds': 1800,
+
+initial_jobs_config: AppJobsConfig = {
+    'on_start_up_jobs': {
+        'interval_jobs': [
+            {
+                'func': remove_expired_unverified_accounts,
+                'id': 'remove_expired_unverified_accounts',
+                'seconds': 1800,
+            }
+        ]
     }
-]
+}

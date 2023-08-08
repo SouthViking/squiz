@@ -4,7 +4,9 @@ from datetime import datetime
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 
+from .. import logger
 from users.models import User
+from core.utils import decode_token
 from core.decorators import tryable_mutation
 from core.graphene.common import BaseMutationResult
 from users.utils import generate_and_send_email_verification_token
@@ -35,6 +37,8 @@ class EmailVerificationMutation(graphene.Mutation, BaseMutationResult):
                     'message': f'The account with email: {decoded_token["email"]} has already been verified.',
                     'status_code': 409,
                 }
+            
+            logger.info(f'Executing email verification for account with ID {user_record.id}.')
 
             user_record.is_verified = True
             user_record.verification_token = None
@@ -86,20 +90,20 @@ class ResendEmailVerificationTokenMutation(graphene.Mutation, BaseMutationResult
                     'status_code': 409,
                 }
             
+            logger.info(f'Executing mutation to resend email verification for account with ID {user_record.id}')
+            
             if user_record.verification_token is not None:
-                current_verification_token: dict = jwt.decode(user_record.verification_token, settings.SECRET_KEY, algorithms = ['HS256'])
-                if current_verification_token.get('iat', None) is not None:
-                    elapsed_since_iat_mins = int(round((datetime.now() - datetime.fromtimestamp(current_verification_token['iat'])).total_seconds()/60, 0))
+                current_verification_token = decode_token(user_record.verification_token)
+                elapsed_since_iat_mins = int(round((datetime.now() - datetime.fromtimestamp(current_verification_token['iat'])).total_seconds()/60, 0))
 
-                    if elapsed_since_iat_mins < settings.EMAIL_VERIFICATION_MIN_GAP_MINS:
-                        remaining_time_mins = settings.EMAIL_VERIFICATION_MIN_GAP_MINS - elapsed_since_iat_mins
+                if elapsed_since_iat_mins < settings.EMAIL_VERIFICATION_MIN_GAP_MINS:
+                    remaining_time_mins = settings.EMAIL_VERIFICATION_MIN_GAP_MINS - elapsed_since_iat_mins
 
-                        return {
-                            'success': False,
-                            'message': f'A verification email was already sent {elapsed_since_iat_mins} minutes ago. You can request again in more {remaining_time_mins} mins.',
-                            'status_code': 409,
-                        }
-
+                    return {
+                        'success': False,
+                        'message': f'A verification email was already sent {elapsed_since_iat_mins} minutes ago. You can request again in more {remaining_time_mins} mins.',
+                        'status_code': 409,
+                    }
             
             generate_and_send_email_verification_token(data['email'])
 

@@ -1,6 +1,7 @@
 import graphene
 from django.core.validators import validate_email
 
+from .. import logger
 from users.models import User
 from core.decorators import tryable_mutation
 from core.graphene.common import BaseMutationResult
@@ -26,7 +27,9 @@ class RegistrationMutation(graphene.Mutation, BaseMutationResult):
                 'status_code': 409,
             }
         
+        logger.info(f'Executing account creation for email: {data["email"]}.')
         validate_email(data['email'])
+        logger.info(f'Email {data["email"]} has been validated.')
         
         User.objects.create(
             full_name = data['full_name'],
@@ -35,7 +38,9 @@ class RegistrationMutation(graphene.Mutation, BaseMutationResult):
             password = data['password'],
         )
 
+        logger.debug(f'Generating and sending email verification token to email: {data["email"]}')
         generate_and_send_email_verification_token(data['email'])
+        logger.debug(f'Verification token Email sent to email: {data["email"]}')
 
         return {
             'success': True,

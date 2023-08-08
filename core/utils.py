@@ -43,7 +43,7 @@ def get_decoded_access_token_from_request(request: HttpRequest) -> Union[str, No
 
     try:
         # Executing the decoding process, so it can throw an error in case the token is invalid.
-        decoded = jwt.decode(parts[1], settings.SECRET_KEY, algorithms = ['HS256'])  
+        decoded = decode_token(parts[1]) 
         return decoded
 
     except jwt.InvalidTokenError as error:
@@ -58,3 +58,5 @@ def import_from_module(module: str, name: str):
     except (AttributeError, ModuleNotFoundError):
         return None
     
+def decode_token(token: str):
+    return jwt.decode(token, settings.SECRET_KEY, algorithms = ['HS256'])

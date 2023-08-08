@@ -4,7 +4,9 @@ from django.conf import settings
 from datetime import datetime, timezone
 from django.core.exceptions import ObjectDoesNotExist
 
+from .. import logger
 from users.models import User
+from core.utils import decode_token
 from core.decorators import tryable_mutation
 from core.graphene.common import BaseMutationResult
 from users.utils import generate_authentication_tokens
@@ -28,12 +30,16 @@ class UserAuthenticationMutation(graphene.Mutation, BaseMutationResult):
         try:
             user_record: User = User.objects.get(email = data['email'])
             if not user_record.check_password(data['password']):
+                logger.warn(f'Authentication for account with ID {user_record.id} failed. Password was incorrect.')
                 return {
                     'success': False,
                     'message': 'The provided credentials are not valid. Please try again.',
                     'status_code': 401,
                 }
             
+            logger.info(f'Executing authentication process for verified account with ID {user_record.id}.')
+            
+            logger.info(f'Last login for account with ID {user_record.id} was on {str(user_record.last_login.replace(microsecond = 0))}')
             user_record.last_login = datetime.now(tz = timezone.utc)
             user_record.save(update_fields = ['last_login'])
             
@@ -71,12 +77,21 @@ class TokenRefreshMutation(graphene.Mutation, BaseMutationResult):
                     'message': 'The token provided is not a valid refresh token.',
                     'status_code': 400,
                 }
+            
+            
+            logger.info(f'Executing token refresh process for account with email {decoded_token["email"]}')
+            logger.debug(f'Status of the current refresh token:')
+            logger.debug(f'iat = {decoded_token["iat"]} ({datetime.fromtimestamp(decoded_token["iat"])}) | exp = {decoded_token["exp"]} ({datetime.fromtimestamp(decoded_token["exp"])}).')
 
-            User.objects.get(email = decoded_token['email'])
+            tokens = generate_authentication_tokens({ 'email': decoded_token['email'] })
+            decoded_access_token = decode_token(tokens['access_token'])
+
+            logger.debug(f'New access token generated with the following timestamps:')
+            logger.debug(f'iat: iat = {decoded_access_token["iat"]} ({datetime.fromtimestamp(decoded_access_token["iat"])}) | exp = {decoded_access_token["exp"]} ({datetime.fromtimestamp(decoded_access_token["exp"])})')
 
             return {
                 'success': True,
-                'tokens': generate_authentication_tokens({ 'email': decoded_token['email'] }),
+                'tokens': tokens,
                 'status_code': 200,
             }
 

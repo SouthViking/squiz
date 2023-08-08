@@ -211,3 +211,54 @@ class QuizReScheduleMutation(graphene.Mutation, BaseMutationResult):
                 'message': 'The target quiz does not exist.',
                 'status_code': 404,
             }
+
+class UserStartQuizMutation(graphene.Mutation, BaseMutationResult):
+    class Arguments:
+        quiz_id = graphene.Int(required = True)
+
+    class Meta:
+        description = 'Generates a new record to mark the quiz as started by the user.'
+
+    @authentication_required_mutation
+    @tryable_mutation()
+    def mutate(root, info, **data):
+        try:
+            user_record: User = User.objects.get(id = info.context['user_id'])
+            quiz_record = Quiz.objects.get(id = data['quiz_id'])
+
+            user_quiz_register = user_record.solved_quizzes.filter(id= data['quiz_id'])
+            
+            if user_quiz_register.count() != 0:
+                return {
+                    'success': False,
+                    'message': 'Cannot start the quiz. It has been already started by the user.',
+                    'status_code': 409,
+                }
+
+            if not quiz_record.is_public and quiz_record.creator.id != user_record.id:
+                return {
+                    'success': False,
+                    'message': 'Cannot start this quiz. It is not public.',
+                    'status_code': 409,
+                }
+            
+            if not quiz_record.is_active:
+                return {
+                    'success': False,
+                    'message': 'Cannot start the quiz. It is currently inactive.',
+                    'status_code': 409,
+                }
+            
+            user_record.solved_quizzes.add(quiz_record, through_defaults = {
+                'total_score': 0,
+            })
+
+
+            return { 'success': True, 'status_code': 200 }
+
+        except ObjectDoesNotExist:
+            return {
+                'success': False,
+                'message': 'The target quiz/user does not exist',
+                'status_code': 404,
+            }

@@ -182,7 +182,7 @@ class QuizReScheduleMutation(graphene.Mutation, BaseMutationResult):
             if quiz_record.creator.id != info.context['user_id']:
                 return {
                     'success': False,
-                    'message': 'Cannot update the quiz. Operation not allowed.',
+                    'message': 'Cannot reschedule the quiz. Operation not allowed.',
                     'status_code': 403,
                 }
 

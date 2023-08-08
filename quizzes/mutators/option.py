@@ -82,6 +82,13 @@ class SetCorrectOptionMutation(graphene.Mutation, BaseMutationResult):
     def mutate(root, info, **data):
         try:
             option_record = Option.objects.get(id = data['option_id'])
+            if option_record.question.quiz.creator.id != info.context['user_id']:
+                return {
+                    'success': False,
+                    'message': 'Cannot update the option. Operation not allowed',
+                    'status_code': 403,
+                }
+            
             if option_record.question.quiz.is_active:
                 return {
                     'success': False,

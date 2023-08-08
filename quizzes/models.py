@@ -51,7 +51,6 @@ class UserQuiz(models.Model):
 
 class UserSelection(models.Model):
     user = models.ForeignKey(User, on_delete = models.CASCADE)
-    question = models.ForeignKey(Question, on_delete = models.CASCADE)
     option = models.ForeignKey(Option, on_delete = models.CASCADE)
 
     class Meta:

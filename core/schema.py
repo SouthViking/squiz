@@ -1,43 +1,12 @@
 import graphene
 
-from users.mutators import (
-    RegistrationMutation,
-    ResendEmailVerificationTokenMutation,
-    EmailVerificationMutation,
-    UserAuthenticationMutation,
-    TokenRefreshMutation,
-)
-
-from quizzes.mutators import (
-    QuizCreationMutation,
-    QuizUpdateMutation,
-    QuestionCreationMutation,
-    QuestionUpdateMutation,
-    AddOptionToQuestionMutation,
-    SetCorrectOptionMutation,
-    QuestionDeleteMutation,
-    QuizReScheduleMutation,
-)
+from users.schema import UserMutations
+from quizzes.schema import QuizMutations
 
 class Queries(graphene.ObjectType):
     bar = graphene.String(default_value = 'foo')
 
-class Mutations(graphene.ObjectType):
-    registrate_user = RegistrationMutation.Field()
-    resend_email_verification_token = ResendEmailVerificationTokenMutation.Field()
-    verify_email = EmailVerificationMutation.Field()
-    authenticate_user = UserAuthenticationMutation.Field()
-    token_refresh = TokenRefreshMutation.Field()
-
-    create_quiz = QuizCreationMutation.Field()
-    update_quiz = QuizUpdateMutation.Field()
-    reschedule_quiz = QuizReScheduleMutation.Field()
-
-    create_question = QuestionCreationMutation.Field()
-    update_question = QuestionUpdateMutation.Field()
-    delete_question = QuestionDeleteMutation.Field()
-
-    add_option_to_question = AddOptionToQuestionMutation.Field()
-    set_correct_option = SetCorrectOptionMutation.Field()
+class Mutations(UserMutations, QuizMutations, graphene.ObjectType):
+    pass
 
 schema = graphene.Schema(query = Queries, mutation = Mutations)

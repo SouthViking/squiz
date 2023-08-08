@@ -1,11 +1,13 @@
 import humps
 import graphene
+from datetime import datetime
+from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
 
 from users.models import User
-from quizzes.models import Quiz
 from core.utils import camelize_list
 from scheduler.scheduler import scheduler
+from quizzes.models import Quiz, Question, Option, UserQuiz
 from core.graphene.common import BaseMutationResult, FieldUpdateErrorInfo
 from core.decorators import tryable_mutation, authentication_required_mutation
 from quizzes.utils import is_quiz_time_interval_valid, is_solving_time_in_between_datetimes
@@ -255,6 +257,110 @@ class UserStartQuizMutation(graphene.Mutation, BaseMutationResult):
 
 
             return { 'success': True, 'status_code': 200 }
+
+        except ObjectDoesNotExist:
+            return {
+                'success': False,
+                'message': 'The target quiz/user does not exist',
+                'status_code': 404,
+            }
+        
+class SubmitQuizAnswersMutation(graphene.Mutation, BaseMutationResult):
+    class Arguments:
+        quiz_id = graphene.Int()
+        # An array containing the IDs of the selected options. (Internally we know the questions that they are attached to)
+        selected_options = graphene.List(graphene.Int)
+
+    class Meta:
+        description = 'Registers the answers and marks the quiz as finished for the user.'
+
+    not_answered_questions = graphene.List(graphene.Int)
+
+    @authentication_required_mutation
+    @tryable_mutation()
+    def mutate(root, info, **data):
+        try:
+            user_record: User = User.objects.get(id = info.context['user_id'])
+            quiz_record = Quiz.objects.get(id = data['quiz_id'])
+
+            user_quiz_register = user_record.solved_quizzes.through.objects.all()
+            if user_quiz_register.count() == 0:
+                return {
+                    'success': False,
+                    'message': 'Cannot register the answers. You need to start it first.',
+                    'status_code': 409,
+                }
+            user_quiz_register: UserQuiz = user_quiz_register[0]
+            
+            
+            if not quiz_record.is_public and quiz_record.creator.id != user_record.id:
+                return {
+                    'success': False,
+                    'message': 'Cannot register the answers. It is not public.',
+                    'status_code': 409,
+                }
+            
+            if not quiz_record.is_active:
+                return {
+                    'success': False,
+                    'message': 'Cannot register the answers. It is currently inactive.',
+                    'status_code': 409,
+                }
+            
+            if user_quiz_register.finished_at is not None:
+                return {
+                    'success': False,
+                    'message': 'Cannot register the answers. The quiz has already been marked as submitted.',
+                }
+            
+            real_score = 0
+
+            expected_questions = Question.objects.values_list('id').get(quiz_id = quiz_record.id)
+            expected_questions_map = {}
+            for expected_question_id in expected_questions:
+                expected_questions_map[expected_question_id] = True
+
+
+            with transaction.atomic():
+                options_to_add = []
+                for selected_option_id in data.get('selected_options', []):
+                    try:
+                        option_record = Option.objects.get(id = selected_option_id)
+                    except ObjectDoesNotExist:
+                        return {
+                            'success': False,
+                            'message': f'Option with ID: {selected_option_id} is not valid. It does not reference any question.',
+                        }
+                    
+                    if option_record.question.id not in expected_questions_map:
+                        # The selected option is not attached to a valid question of the current quiz.
+                        # Just skip.
+                        continue
+
+                    del expected_questions_map[option_record.question.id]
+
+                    real_score += option_record.is_correct * option_record.question.score
+
+                    options_to_add.append(option_record)
+
+                if len(expected_questions_map) != 0:
+                    return {
+                        'success': False,
+                        'message': 'Some questions were not answered.',
+                        'not_answered_questions': expected_questions_map.keys()
+                    }
+
+                for option in options_to_add:
+                    user_record.selections.add(option)
+
+                user_quiz_register.finished_at = datetime.now()
+                user_quiz_register.total_score = real_score
+                user_quiz_register.save()
+            
+            return {
+                'success': True,
+                'message': 'The quiz has been submited correctly.',
+            }
 
         except ObjectDoesNotExist:
             return {

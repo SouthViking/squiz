@@ -9,7 +9,8 @@ from .mutators import (
     QuestionDeleteMutation,
     AddOptionToQuestionMutation,
     SetCorrectOptionMutation,
-    UserStartQuizMutation
+    UserStartQuizMutation,
+    SubmitQuizAnswersMutation
 )
 
 class QuizMutations(graphene.ObjectType):
@@ -17,6 +18,7 @@ class QuizMutations(graphene.ObjectType):
     update_quiz = QuizUpdateMutation.Field()
     reschedule_quiz = QuizReScheduleMutation.Field()
     user_start_quiz = UserStartQuizMutation.Field()
+    submit_quiz_answers = SubmitQuizAnswersMutation.Field()
 
     create_question = QuestionCreationMutation.Field()
     update_question = QuestionUpdateMutation.Field()

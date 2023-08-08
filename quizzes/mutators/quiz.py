@@ -179,6 +179,13 @@ class QuizReScheduleMutation(graphene.Mutation, BaseMutationResult):
     def mutate(root, info, **data):
         try:
             quiz_record = Quiz.objects.get(id = data['quiz_id'])
+            if quiz_record.creator.id != info.context['user_id']:
+                return {
+                    'success': False,
+                    'message': 'Cannot update the quiz. Operation not allowed.',
+                    'status_code': 403,
+                }
+
             if quiz_record.is_active:
                 return {
                     'success': False,

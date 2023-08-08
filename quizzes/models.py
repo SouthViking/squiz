@@ -43,7 +43,7 @@ class UserQuiz(models.Model):
     user = models.ForeignKey(User, on_delete = models.CASCADE)
     quiz = models.ForeignKey(Quiz, on_delete = models.CASCADE)
     started_at = models.DateTimeField(auto_now_add = True)
-    finished_at = models.DateTimeField()
+    finished_at = models.DateTimeField(null = True)
     total_score = models.IntegerField()
 
     class Meta:

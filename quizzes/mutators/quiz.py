@@ -4,6 +4,7 @@ from datetime import datetime
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
 
+from .. import logger
 from users.models import User
 from core.utils import camelize_list
 from scheduler.scheduler import scheduler
@@ -53,6 +54,8 @@ class QuizCreationMutation(graphene.Mutation, BaseMutationResult):
                 'status_code': 400,
             }
 
+        logger.info(f'Executing new quiz creation for creator ID {user_id}')
+
         new_quiz = Quiz(
             title = data['title'],
             summary = data.get('summary', None),
@@ -65,10 +68,12 @@ class QuizCreationMutation(graphene.Mutation, BaseMutationResult):
             draft_mode = data.get('draft_mode', True),
         )
         new_quiz.save()
+        logger.info(f'New quiz has been created correctly (ID: {new_quiz.id}).')
         
         if data.get('use_scheduling', False) and not data.get('draft_mode', True):
             # If the quiz is in 'draft mode', then it means that in the client side can still be edited
             # so shouldn't be prepared to be published until the flag is manually changed.
+            logger.debug(f'New quiz (ID: {new_quiz.id}) configured to be scheduled. Adding datetime jobs to enable and disable it.')
             scheduler.add_datetime_based_jobs([
                 generate_quiz_activation_job_definition(new_quiz, True),
                 generate_quiz_activation_job_definition(new_quiz, False)
@@ -111,11 +116,14 @@ class QuizUpdateMutation(graphene.Mutation, BaseMutationResult):
                     'status_code': 403,
                 }
             
+            logger.info(f'Executing quiz update mutation for quiz with ID {quiz_record.id}')
+            
             for field in data:
                 if field == 'id':
                     continue
 
                 if type(data[field]) == str and len(data[field].strip()) == 0:
+                    logger.warn(f'Field "{field}" has not been specified during update mutation for quiz ID {quiz_record.id}')
                     fields_with_error.append({
                         'field': humps.camelize(field),
                         'error': 'The field cannot be empty.',
@@ -124,6 +132,9 @@ class QuizUpdateMutation(graphene.Mutation, BaseMutationResult):
 
                 if field == 'max_solving_time_mins':
                     if not is_solving_time_in_between_datetimes(quiz_record.starts_at, quiz_record.deadline, data['max_solving_time_mins']):
+                        logger.warn(f'Solving time is not valid for quiz with ID {quiz_record.id}.')
+                        logger.warn(f'Starts at: {quiz_record.starts_at} | Deadline: {quiz_record.deadline} | Max solving time in mins: {data["max_solving_time_mins"]}')
+                        
                         fields_with_error.append({
                             'field': humps.camelize(field),
                             'error': 'The time interval defined is not valid regarding the current start and end time for the quiz.'
@@ -135,6 +146,8 @@ class QuizUpdateMutation(graphene.Mutation, BaseMutationResult):
 
             quiz_record.save()
             camelize_list(updated_fields)
+
+            logger.debug(f'Quiz with ID {quiz_record.id} has been updated. Updated fields: {updated_fields} | Fields with error: {fields_with_error}')
 
             return {
                 'success': True,
@@ -172,6 +185,8 @@ class QuizReScheduleMutation(graphene.Mutation, BaseMutationResult):
                     'message': 'Cannot reschedule the quiz. It is currently active.',
                     'status_code': 409,
                 }
+            
+            logger.info(f'Executing reschedule mutation for quiz with ID {quiz_record.id}')
 
             new_starts_at = data['starts_at'] if 'starts_at' in data else quiz_record.starts_at
             new_deadline = data['deadline'] if 'deadline' in data else quiz_record.deadline
@@ -179,22 +194,26 @@ class QuizReScheduleMutation(graphene.Mutation, BaseMutationResult):
 
             valid, error = is_quiz_time_interval_valid(new_starts_at, new_deadline, quiz_record.max_solving_time_mins)
             if not valid:
+                logger.error(f'The new time interval is not valid. Error: {error}')
                 return {
                     'success': False,
                     'message': error,
                     'status_code': 409,
                 }
             
+            logger.info(f'Saving new schedule attributes for quiz with ID {quiz_record.id}')
             quiz_record.starts_at = new_starts_at
             quiz_record.deadline = new_deadline
             quiz_record.use_scheduling = new_use_scheduling
             quiz_record.save()
+            logger.info(f'Quiz with ID {quiz_record.id} has been updated correctly.')
 
             # Remove the current jobs in case they were scheduled.
             scheduler.remove_job_by_id(generate_quiz_activation_job_id(quiz_record.id, True))
             scheduler.remove_job_by_id(generate_quiz_activation_job_id(quiz_record.id, False))
 
             if new_use_scheduling:
+                logger.info(f'Quiz with ID {quiz_record.id} needs to be scheduled. Rescheduling based on the updated datetimes.')
                 # Schedule the new jobs regarding the updated values for starts_at and deadline
                 scheduler.add_datetime_based_jobs([
                     generate_quiz_activation_job_definition(quiz_record, True),
@@ -250,11 +269,12 @@ class UserStartQuizMutation(graphene.Mutation, BaseMutationResult):
                     'message': 'Cannot start the quiz. It is currently inactive.',
                     'status_code': 409,
                 }
+
+            logger.info(f'Creating record for user ID {user_record.id} with quiz ID {quiz_record.id}')
             
             user_record.solved_quizzes.add(quiz_record, through_defaults = {
                 'total_score': 0,
             })
-
 
             return { 'success': True, 'status_code': 200 }
 
@@ -292,7 +312,6 @@ class SubmitQuizAnswersMutation(graphene.Mutation, BaseMutationResult):
                 }
             user_quiz_register: UserQuiz = user_quiz_register[0]
             
-            
             if not quiz_record.is_public and quiz_record.creator.id != user_record.id:
                 return {
                     'success': False,
@@ -313,15 +332,20 @@ class SubmitQuizAnswersMutation(graphene.Mutation, BaseMutationResult):
                     'message': 'Cannot register the answers. The quiz has already been marked as submitted.',
                 }
             
+            logger.info(f'Executing quiz submit mutation for user ID {user_record.id} in quiz with ID {quiz_record.id}')
+            
             real_score = 0
 
             expected_questions = Question.objects.values_list('id').get(quiz_id = quiz_record.id)
+            logger.debug(f'The quiz (ID {quiz_record.id}) has {len(expected_questions)} expected questions. IDs: {expected_questions}')
+
             expected_questions_map = {}
             for expected_question_id in expected_questions:
                 expected_questions_map[expected_question_id] = True
 
-
             with transaction.atomic():
+                logger.debug(f'Starting transaction to register user\'s answers.')
+
                 options_to_add = []
                 for selected_option_id in data.get('selected_options', []):
                     try:
@@ -335,13 +359,18 @@ class SubmitQuizAnswersMutation(graphene.Mutation, BaseMutationResult):
                     if option_record.question.id not in expected_questions_map:
                         # The selected option is not attached to a valid question of the current quiz.
                         # Just skip.
+                        logger.warn(f'Got a selected option that is not part of any of the expected questions. Selected option: {selected_option_id}')
                         continue
 
                     del expected_questions_map[option_record.question.id]
 
-                    real_score += option_record.is_correct * option_record.question.score
+                    question_obtained_score = option_record.is_correct * option_record.question.score
+                    logger.debug(f'Current calculated score: {real_score}. Obtained now for question with ID {option_record.question.id}: {question_obtained_score}')
+
+                    real_score += question_obtained_score
 
                     options_to_add.append(option_record)
+                    logger.debug(f'Option (ID {option_record.id}) record added to the options to add for the user answers.')
 
                 if len(expected_questions_map) != 0:
                     return {
@@ -356,6 +385,8 @@ class SubmitQuizAnswersMutation(graphene.Mutation, BaseMutationResult):
                 user_quiz_register.finished_at = datetime.now()
                 user_quiz_register.total_score = real_score
                 user_quiz_register.save()
+
+            logger.debug(f'Transaction finished for answers saving of user with ID {user_record.id}')
             
             return {
                 'success': True,

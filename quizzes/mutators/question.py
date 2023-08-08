@@ -4,6 +4,7 @@ from typing import List
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
 
+from .. import logger
 from core.utils import camelize_list
 from quizzes.models import Question, Quiz, Option
 from core.graphene.common import BaseMutationResult, FieldUpdateErrorInfo
@@ -43,7 +44,12 @@ class QuestionCreationMutation(graphene.Mutation, BaseMutationResult):
                     'status_code': 409,
                 }
             try:
+
+                logger.info(f'Executing mutation to create question in quiz with ID {quiz_record.id}.')
+
                 with transaction.atomic():
+                    logger.debug('Starting transaction to register question and answers.')
+
                     question = Question(
                         title = data['title'],
                         description = data.get('description', ''),
@@ -51,6 +57,8 @@ class QuestionCreationMutation(graphene.Mutation, BaseMutationResult):
                         quiz = quiz_record
                     )
                     question.save()
+
+                    logger.debug(f'Question has been stored correctly (ID: {question.id}).')
 
                     options_to_create: List[Option] = []
                     for option in data.get('options', []):
@@ -62,8 +70,11 @@ class QuestionCreationMutation(graphene.Mutation, BaseMutationResult):
                                 question = question,
                             )
                         )
+
+                    logger.debug(f'Options to create in question with ID {question.id}: {options_to_create}.')
                     
                     Option.objects.bulk_create(options_to_create)
+                    logger.debug(f'Options have been inserted correctly for question with ID {question.id}.')
 
             except Exception as error:
                 return {
@@ -112,9 +123,12 @@ class QuestionUpdateMutation(graphene.Mutation, BaseMutationResult):
             updated_fields = []
             fields_with_error = []
             allowed_empty_fields = ['description']
+
+            logger.info(f'Executing update mutation for question with ID {question_record.id}.')
             
             for field in data:
                 if type(data[field]) == str and len(data[field].strip()) == 0 and field not in allowed_empty_fields:
+                    logger.warn(f'Got an empty value for required string field {field} during update mutation for question {question_record.id}.')
                     fields_with_error.append({
                         'field': humps.camelize(field),
                         'error': 'The field cannot be empty.',
@@ -132,6 +146,9 @@ class QuestionUpdateMutation(graphene.Mutation, BaseMutationResult):
                 updated_fields.append(field)
 
             question_record.save()
+
+            logger.debug(f'Question with ID {question_record.id} has been updated. Updated fields: {updated_fields} | Fields with error: {fields_with_error}')
+
             camelize_list(updated_fields)
 
             return {
@@ -178,8 +195,12 @@ class QuestionDeleteMutation(graphene.Mutation, BaseMutationResult):
             
             # TODO: If there are user answers, then remove those from the table as well.
 
+            logger.info(f'Executing mutation to remove question with ID {question_record.id}.')
+
             # Since there is a foreign key to the question in the option table, then the deletion will cascade.
             question_record.delete()
+
+            logger.info(f'Question with ID {question_record.id} has been removed correctly.')
 
 
         except ObjectDoesNotExist:

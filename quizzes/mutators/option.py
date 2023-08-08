@@ -2,6 +2,7 @@ import graphene
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
 
+from .. import logger
 from quizzes.models import Question, Option
 from core.graphene.common import BaseMutationResult
 from core.decorators import tryable_mutation, authentication_required_mutation
@@ -47,6 +48,8 @@ class AddOptionToQuestionMutation(graphene.Mutation, BaseMutationResult):
                     'status_code': 409,
                 }
             
+            logger.info(f'Executing mutation to add option to question ID {question_record.id}.')
+
             new_option = Option(
                     label = data['label'],
                     is_correct = data.get('is_correct', False),
@@ -54,6 +57,8 @@ class AddOptionToQuestionMutation(graphene.Mutation, BaseMutationResult):
                     question = question_record,
                 )
             new_option.save()
+
+            logger.info(f'New option (ID: {new_option.id}) has been added to the question options. Question ID: {question_record.id}.')
 
             return {
                 'success': True,
@@ -89,11 +94,16 @@ class SetCorrectOptionMutation(graphene.Mutation, BaseMutationResult):
             with transaction.atomic():
                 if len(correct_option_filter) != 0:
                     current_correct_option = correct_option_filter[0]
+
+                    logger.debug(f'Current correct option for question (ID: {option_record.question.id}) is option ID {current_correct_option.id}. Setting it as False.')
+
                     current_correct_option.is_correct = False
                     current_correct_option.save()
 
                 option_record.is_correct = True
                 option_record.save()
+                
+                logger.info(f'Option with ID {option_record.id} has been marked as the correct one for question ID {option_record.question.id}.')
 
             # TODO: In case the quiz already has user's answers, the total points of those that answered the quiz need to be calculated again
             # regarding the new correct option (if it really changed)

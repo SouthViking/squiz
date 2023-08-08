@@ -8,10 +8,13 @@ from quizzes.models import Quiz
 from scheduler.scheduler import Scheduler
 from scheduler.types import AppJobsConfig, DateTimeBasedJobDefinition
 
+def generate_quiz_activation_job_id(quiz_id: int, activation: bool):
+    return f'quiz-{quiz_id}-activation-job' if activation else f'quiz-{quiz_id}-deactivation-job'
+
 def generate_quiz_activation_job_definition(quiz: Quiz, activation: bool, custom_run_date: datetime = None) -> DateTimeBasedJobDefinition:
     return {
         'func': quiz_activation_job if activation else quiz_deactivation_job,
-        'id': f'quiz-{quiz.id}-activation-job' if activation else f'quiz-{quiz.id}-deactivation-job',
+        'id': generate_quiz_activation_job_id(quiz.id, activation),
         'args': [quiz.id],
         'run_date': custom_run_date if custom_run_date else ( quiz.starts_at if activation else quiz.deadline ).replace(microsecond = 0),
     }

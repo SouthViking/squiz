@@ -16,6 +16,7 @@ from quizzes.mutators import (
     AddOptionToQuestionMutation,
     SetCorrectOptionMutation,
     QuestionDeleteMutation,
+    QuizReScheduleMutation,
 )
 
 class Queries(graphene.ObjectType):
@@ -30,6 +31,7 @@ class Mutations(graphene.ObjectType):
 
     create_quiz = QuizCreationMutation.Field()
     update_quiz = QuizUpdateMutation.Field()
+    reschedule_quiz = QuizReScheduleMutation.Field()
 
     create_question = QuestionCreationMutation.Field()
     update_question = QuestionUpdateMutation.Field()

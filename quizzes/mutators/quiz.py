@@ -6,10 +6,10 @@ from users.models import User
 from quizzes.models import Quiz
 from core.utils import camelize_list
 from scheduler.scheduler import scheduler
-from quizzes.jobs import generate_quiz_activation_job_definition
 from core.graphene.common import BaseMutationResult, FieldUpdateErrorInfo
 from core.decorators import tryable_mutation, authentication_required_mutation
 from quizzes.utils import is_quiz_time_interval_valid, is_solving_time_in_between_datetimes
+from quizzes.jobs import generate_quiz_activation_job_definition, generate_quiz_activation_job_id
 
 class QuizObject(graphene.ObjectType):
     title = graphene.String()
@@ -131,7 +131,6 @@ class QuizUpdateMutation(graphene.Mutation, BaseMutationResult):
                 setattr(quiz_record, field, data[field])
                 updated_fields.append(field)
 
-            # TODO: Handle schedule process in case `use_scheduling` is updated to False (need to stop the task if exists)
             quiz_record.save()
             camelize_list(updated_fields)
 
@@ -141,6 +140,68 @@ class QuizUpdateMutation(graphene.Mutation, BaseMutationResult):
                 'updated_fields': updated_fields,
                 'fields_with_error': fields_with_error,
                 'quiz': quiz_record,
+                'status_code': 200,
+            }
+
+        except ObjectDoesNotExist:
+            return {
+                'success': False,
+                'message': 'The target quiz does not exist.',
+                'status_code': 404,
+            }
+        
+class QuizReScheduleMutation(graphene.Mutation, BaseMutationResult):
+    class Arguments:
+        quiz_id = graphene.Int(required = True)
+        starts_at = graphene.DateTime()
+        deadline = graphene.DateTime()
+        use_scheduling = graphene.Boolean()
+
+    description = 'Allows to reschedule a quiz by modifying either its start or end time, or enabling/disabling the scheduling option.'
+
+    @authentication_required_mutation
+    @tryable_mutation()
+    def mutate(root, info, **data):
+        try:
+            quiz_record = Quiz.objects.get(id = data['quiz_id'])
+            if quiz_record.is_active:
+                return {
+                    'success': False,
+                    'message': 'Cannot reschedule the quiz. It is currently active.',
+                    'status_code': 409,
+                }
+
+            new_starts_at = data['starts_at'] if 'starts_at' in data else quiz_record.starts_at
+            new_deadline = data['deadline'] if 'deadline' in data else quiz_record.deadline
+            new_use_scheduling = data['use_scheduling'] if 'use_scheduling' in data else quiz_record.use_scheduling
+
+            valid, error = is_quiz_time_interval_valid(new_starts_at, new_deadline, quiz_record.max_solving_time_mins)
+            if not valid:
+                return {
+                    'success': False,
+                    'message': error,
+                    'status_code': 409,
+                }
+            
+            quiz_record.starts_at = new_starts_at
+            quiz_record.deadline = new_deadline
+            quiz_record.use_scheduling = new_use_scheduling
+            quiz_record.save()
+
+            # Remove the current jobs in case they were scheduled.
+            scheduler.remove_job_by_id(generate_quiz_activation_job_id(quiz_record.id, True))
+            scheduler.remove_job_by_id(generate_quiz_activation_job_id(quiz_record.id, False))
+
+            if new_use_scheduling:
+                # Schedule the new jobs regarding the updated values for starts_at and deadline
+                scheduler.add_datetime_based_jobs([
+                    generate_quiz_activation_job_definition(quiz_record, True),
+                    generate_quiz_activation_job_definition(quiz_record, False)
+                ])
+
+            return {
+                'success': True,
+                'message': 'The quiz has been rescheduled correctly.',
                 'status_code': 200,
             }
 

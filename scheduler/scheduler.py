@@ -67,6 +67,7 @@ class Scheduler:
             self.scheduler.add_job(
                 tryable_function(job['func']),
                 'interval',
+                id = job.get('id'),
                 name = job.get('name', job['func'].__name__),
                 args = job.get('args', []),
                 kwargs = job.get('kwargs', {}),
@@ -78,6 +79,7 @@ class Scheduler:
             self.scheduler.add_job(
                 tryable_function(job['func']),
                 'date',
+                id = job.get('id'),
                 name = job.get('name', job['func'].__name__),
                 args = job.get('args', []),
                 kwargs = job.get('kwargs', {}),
@@ -105,7 +107,8 @@ class Scheduler:
             if not self.scheduler.get_job(job_id):
                 self.logger.error(f'Cannot find a scheduled job with ID: {job_id}. Skipping deletion process.')
                 return
-
+            
+            self.logger.info(f'Found job with ID {job_id}. Removing it.')
             self.scheduler.remove_job(job_id)
 
         except Exception as error:

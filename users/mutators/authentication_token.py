@@ -70,7 +70,7 @@ class TokenRefreshMutation(graphene.Mutation, BaseMutationResult):
     @tryable_mutation(required_fields = ['refresh_token'])
     def mutate(root, info, **data):
         try:
-            decoded_token: dict = jwt.decode(data['refresh_token'], settings.SECRET_KEY, algorithms = ['HS256'])
+            decoded_token: dict = decode_token(data['refresh_token'])
             if decoded_token.get('type', None) != 'refresh':
                 return {
                     'success': False,

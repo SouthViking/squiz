@@ -21,7 +21,7 @@ class EmailVerificationMutation(graphene.Mutation, BaseMutationResult):
     @tryable_mutation(required_fields = ['token'])
     def mutate(root, info, **data):
         try:
-            decoded_token: dict = jwt.decode(data['token'], settings.SECRET_KEY, algorithms = ['HS256'])
+            decoded_token: dict = decode_token(data['token'])
             if decoded_token.get('email', None) is None:
                 return {
                     'success': False,

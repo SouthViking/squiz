@@ -78,6 +78,8 @@ class TokenRefreshMutation(graphene.Mutation, BaseMutationResult):
                     'status_code': 400,
                 }
             
+            # Just executing the query to throw an error in case it is not found. Don't need to use the record.
+            User.objects.get(email = decoded_token['email'])
             
             logger.info(f'Executing token refresh process for account with email {decoded_token["email"]}')
             logger.debug(f'Status of the current refresh token:')

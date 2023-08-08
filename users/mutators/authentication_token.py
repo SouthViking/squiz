@@ -38,8 +38,12 @@ class UserAuthenticationMutation(graphene.Mutation, BaseMutationResult):
                 }
             
             logger.info(f'Executing authentication process for verified account with ID {user_record.id}.')
+
+            if user_record.last_login is not None:
+                logger.info(f'Last login for account with ID {user_record.id} was on {str(user_record.last_login.replace(microsecond = 0))}')
+            else:
+                logger.info(f'Executing first authentication for new account with ID {user_record.id}.')
             
-            logger.info(f'Last login for account with ID {user_record.id} was on {str(user_record.last_login.replace(microsecond = 0))}')
             user_record.last_login = datetime.now(tz = timezone.utc)
             user_record.save(update_fields = ['last_login'])
             

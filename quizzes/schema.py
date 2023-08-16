@@ -13,6 +13,10 @@ from .mutators import (
     SubmitQuizAnswersMutation
 )
 
+from .queries import (
+    QuizQueries as InternalQuizQueries,
+)
+
 class QuizMutations(graphene.ObjectType):
     create_quiz = QuizCreationMutation.Field()
     update_quiz = QuizUpdateMutation.Field()
@@ -26,3 +30,6 @@ class QuizMutations(graphene.ObjectType):
 
     add_option_to_question = AddOptionToQuestionMutation.Field()
     set_correct_option = SetCorrectOptionMutation.Field()
+
+class QuizQueries(InternalQuizQueries):
+    pass

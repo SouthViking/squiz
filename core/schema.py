@@ -1,12 +1,9 @@
 import graphene
 
-from users.schema import UserMutations
-from users.queries.user import UsersQueries
+from users.schema import UserMutations, UserQueries
+from quizzes.schema import QuizMutations, QuizQueries
 
-from quizzes.schema import QuizMutations
-from quizzes.queries.quiz import QuizQueries
-
-class Queries(UsersQueries, QuizQueries, graphene.ObjectType):
+class Queries(UserQueries, QuizQueries, graphene.ObjectType):
     pass
 
 class Mutations(UserMutations, QuizMutations, graphene.ObjectType):

@@ -80,6 +80,27 @@ def authentication_required_mutation(func):
 
     return wrapper
 
+# TODO: DRY some logic with authentication_required_mutation
+def authentication_required_query(func):
+    def wrapper(*args, **kwargs):
+        graphql_context: dict = args[1].context
+
+        if graphql_context.get('token_data', None) is None:
+            raise Exception('Access token not provided.')
+        
+        if graphql_context['token_data'].get('type', None) != 'access':
+            raise Exception('The provided token is not an access token.')
+
+        try:
+            user_record: User = User.objects.get(email = graphql_context['token_data']['email'])
+            args[1].context['user_id'] = user_record.id
+
+        except ObjectDoesNotExist:
+            raise Exception('The user account related to the access token is no longer valid.')
+        
+        return func(*args, **kwargs)
+    
+    return wrapper
 
 def tryable_function(func: Callable) -> Callable:
     def wrapper(*args, **kwargs):

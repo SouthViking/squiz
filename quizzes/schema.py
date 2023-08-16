@@ -15,6 +15,8 @@ from .mutators import (
 
 from .queries import (
     QuizQueries as InternalQuizQueries,
+    QuestionQueries,
+    OptionQueries,
 )
 
 class QuizMutations(graphene.ObjectType):
@@ -31,5 +33,5 @@ class QuizMutations(graphene.ObjectType):
     add_option_to_question = AddOptionToQuestionMutation.Field()
     set_correct_option = SetCorrectOptionMutation.Field()
 
-class QuizQueries(InternalQuizQueries):
+class QuizQueries(InternalQuizQueries, QuestionQueries, OptionQueries):
     pass

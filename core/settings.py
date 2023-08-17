@@ -13,8 +13,6 @@ import os
 from pathlib import Path
 from datetime import timedelta
 
-from .utils import get_config_values_from_file
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -87,9 +85,14 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        "ENGINE": os.environ.get('DB_ENGINE', None),
+        "NAME": os.environ.get('DB_NAME', None),
+        "USER": os.environ.get('DB_USER', None),
+        "PASSWORD": os.environ.get('DB_PASSWORD', None),
+        "HOST": os.environ.get('DB_HOST', None),
+        "PORT": os.environ.get('DB_PORT', None),
         'OPTIONS': {
-            'read_default_file': GLOBAL_CONFIG_PATH,
+            'charset': os.environ.get('DB_CHARSET', None),
         }
     }
 }
@@ -159,15 +162,11 @@ GRAPHENE = {
 
 # Email sender settings
 
-# config = get_config_values_from_file(os.path.normpath(os.path.join(BASE_DIR, 'credentials', '')))
-
-values = get_config_values_from_file(GLOBAL_CONFIG_PATH, 'email')
-
-EMAIL_HOST = values.get('host', None)
-EMAIL_PORT = values.get('port', None)
-EMAIL_HOST_USER = values.get('user', None)
-EMAIL_HOST_PASSWORD = values.get('password', None)
-EMAIL_USE_TLS = bool(values.get('use_tls', False))
+EMAIL_HOST = os.environ.get('EMAIL_HOST', None)
+EMAIL_PORT = os.environ.get('EMAIL_PORT', None)
+EMAIL_HOST_USER = os.environ.get('EMAIL_USER', None)
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASSWORD', None)
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', None)
 
 # Expiration times defined for the tokens
 EMAIL_VERIFICATION_EXPIRATION_MAX_HRS = 3

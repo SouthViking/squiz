@@ -20,18 +20,6 @@ def get_empty_entries(object: dict, target_keys: List[str]) -> List[str]:
 def camelize_list(elements: List[str]):
     for i in range(len(elements)):
         elements[i] = humps.camelize(elements[i])
-
-
-def get_config_values_from_file(filepath: str, section_name: str) -> Dict[str, Any]:
-    try:
-        config = configparser.RawConfigParser()
-        config.read(filepath)
-
-        return dict(config.items(section_name))
-    except Exception as error:
-        print(error)
-
-        return {}
     
 def get_decoded_access_token_from_request(request: HttpRequest) -> Union[str, None]:
     if not hasattr(request, 'META') or request.META.get('HTTP_AUTHORIZATION', None) is None:

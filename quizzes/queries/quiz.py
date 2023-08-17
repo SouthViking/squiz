@@ -28,7 +28,7 @@ class QuizQueries(graphene.ObjectType):
         try:
             quiz_record = Quiz.objects.get(id = id)
 
-            if quiz_record.creator.id != info.context.get('user_id') and quiz_record.is_public:
+            if quiz_record.creator.id != info.context.get('user_id') and not quiz_record.is_public:
                 return Exception('Cannot access the quiz. Access not allowed.')
 
             return quiz_record

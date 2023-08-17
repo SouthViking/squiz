@@ -93,7 +93,10 @@ DATABASES = {
         "PORT": os.environ.get('DB_PORT', None),
         'OPTIONS': {
             'charset': os.environ.get('DB_CHARSET', None),
-        }
+        },
+        'TEST': {
+            'NAME': 'testdb',
+        },
     }
 }
 

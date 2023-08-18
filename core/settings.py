@@ -16,20 +16,16 @@ from datetime import timedelta
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# File for global credentials
-GLOBAL_CONFIG_PATH = os.path.normpath(os.path.join(BASE_DIR, 'credentials.cnf'))
-
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-rixkh)s+*c*bva^8&9oh@h=3@!zwj*#**&q50!6@4-pfnval3-'
+SECRET_KEY =os.environ.get('SECRET_KEY', None)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = bool(int(os.environ.get('DEBUG', None)))
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS').split(' ')
 
 
 # Application definition

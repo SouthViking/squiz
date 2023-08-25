@@ -1,0 +1,803 @@
+{
+	"info": {
+		"_postman_id": "4b9ca371-398f-4ef3-b54e-9389704e8acb",
+		"name": "Squiz API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "17932072"
+	},
+	"item": [
+		{
+			"name": "Mutations",
+			"item": [
+				{
+					"name": "User",
+					"item": [
+						{
+							"name": "User authentication",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "graphql",
+									"graphql": {
+										"query": "mutation UserAuthentication($email: String!, $password: String!) {\r\n    authenticateUser(\r\n        email: $email,\r\n        password: $password\r\n    ) {\r\n        success\r\n        message\r\n        internalMessage\r\n        tokens {\r\n            accessToken\r\n            refreshToken\r\n        }\r\n        statusCode\r\n    }\r\n}",
+										"variables": "{\r\n    \"email\": \"\",\r\n    \"password\": \"\"\r\n}"
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}:{{port}}/{{api_path}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"{{api_path}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Send email verification token",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "graphql",
+									"graphql": {
+										"query": "mutation SendEmailVerificationToken($email: String!) {\r\n    resendEmailVerificationToken(\r\n        email: $email\r\n    ) {\r\n        success\r\n        message\r\n        internalMessage\r\n        statusCode\r\n    }\r\n}",
+										"variables": "{\r\n    \"email\": \"\"\r\n}"
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}:{{port}}/{{api_path}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"{{api_path}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Email verification",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "graphql",
+									"graphql": {
+										"query": "mutation EmailVerification($token: String!) {\r\n    verifyEmail(token: $token) {\r\n        success\r\n        message\r\n        internalMessage\r\n        statusCode\r\n    }\r\n}",
+										"variables": "{\r\n    \"token\": \"\"\r\n}"
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}:{{port}}/{{api_path}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"{{api_path}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Access token refresh",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "graphql",
+									"graphql": {
+										"query": "mutation RefreshAccessToken(\r\n    $refreshToken: String!\r\n) {\r\n    tokenRefresh(\r\n        refreshToken: $refreshToken\r\n    ) {\r\n        success\r\n        message\r\n        tokens {\r\n            accessToken\r\n            refreshToken\r\n        }\r\n        internalMessage\r\n        statusCode\r\n    }\r\n}",
+										"variables": "{\r\n    \"refreshToken\": \"\"\r\n}"
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}:{{port}}/{{api_path}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"{{api_path}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "User registration",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "graphql",
+									"graphql": {
+										"query": "mutation UserRegistration(\r\n    $fullName: String!,\r\n    $nickname: String!,\r\n    $email: String!,\r\n    $password: String!\r\n) {\r\n    registrateUser(\r\n        fullName: $fullName,\r\n        nickname: $nickname,\r\n        email: $email,\r\n        password: $password\r\n    ) {\r\n        success\r\n        message\r\n        internalMessage\r\n        statusCode\r\n    }\r\n}",
+										"variables": "{\r\n    \"fullName\": \"\",\r\n    \"nickname\": \"\",\r\n    \"email\": \"\",\r\n    \"password\": \"\"\r\n}"
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}:{{port}}/{{api_path}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"{{api_path}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Quiz",
+					"item": [
+						{
+							"name": "Quizzes",
+							"item": [
+								{
+									"name": "Quiz creation",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2OTIyODI4MDMsImV4cCI6MTY5MjM2OTIwMywidHlwZSI6ImFjY2VzcyIsImVtYWlsIjoic2ViYXN3YXNoQGdtYWlsLmNvbSJ9.zZdZ2b1_1ECMdva2ihtWgzNB_6KwY94Fjyu7npof2t8",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "graphql",
+											"graphql": {
+												"query": "mutation QuizCreation(\r\n    $title: String!,\r\n    $summary: String,\r\n    $maxSolvingTimeMins: Int!,\r\n    $isPublic: Boolean,\r\n    $useScheduling: Boolean\r\n    $startsAt: DateTime!,\r\n    $deadline: DateTime!,\r\n    $draftMode: Boolean\r\n) {\r\n    createQuiz(\r\n        title: $title,\r\n        summary: $summary,\r\n        maxSolvingTimeMins: $maxSolvingTimeMins,\r\n        isPublic: $isPublic,\r\n        useScheduling: $useScheduling,\r\n        startsAt: $startsAt,\r\n        deadline: $deadline,\r\n        draftMode: $draftMode\r\n    ) {\r\n        success\r\n        message\r\n        statusCode\r\n        internalMessage\r\n        quiz {\r\n            maxSolvingTimeMins\r\n            title\r\n            createdAt\r\n            deadline\r\n            startsAt\r\n            summary\r\n            isActive\r\n            isPublic\r\n            useScheduling\r\n        }\r\n    }\r\n}",
+												"variables": "{\r\n    \"title\": \"Quiz B\",\r\n    \"summary\": \"\",\r\n    \"maxSolvingTimeMins\": 40,\r\n    \"isPublic\": true,\r\n    \"useScheduling\": false,\r\n    \"startsAt\": \"2023-08-18T10:10:00.000\",\r\n    \"deadline\": \"2023-08-18T12:30:00.000\",\r\n    \"draftMode\": false\r\n}"
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}:{{port}}/{{api_path}}",
+											"host": [
+												"{{base_url}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"{{api_path}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Quiz update",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2OTE1NDEyMTksImV4cCI6MTY5MTYyNzYxOSwidHlwZSI6ImFjY2VzcyIsImVtYWlsIjoic2ViYXN3YXNoQGdtYWlsLmNvbSJ9.8D9SuER9UjQYFX-E36kUyxR7SDSvWG1DvgWkAD-bqzQ",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "graphql",
+											"graphql": {
+												"query": "mutation QuizUpdate(\r\n    $quizId: Int!,\r\n    $title: String,\r\n    $summary: String,\r\n    $maxSolvingTimeMins: Int,\r\n    $isPublic: Boolean\r\n) {\r\n    updateQuiz(\r\n        id: $quizId,\r\n        title: $title,\r\n        summary: $summary,\r\n        maxSolvingTimeMins: $maxSolvingTimeMins,\r\n        isPublic: $isPublic\r\n    ) {\r\n        success\r\n        message\r\n        internalMessage\r\n        quiz {\r\n            title\r\n            startsAt\r\n            summary\r\n            isPublic\r\n            deadline\r\n            maxSolvingTimeMins\r\n        }\r\n        fieldsWithError {\r\n            field\r\n            error\r\n        }\r\n        updatedFields\r\n        statusCode\r\n    }\r\n}",
+												"variables": "{\r\n    \"quizId\": 52,\r\n    \"isPublic\": true,\r\n    \"summary\": \"This is a summary for the quiz A\",\r\n    \"maxSolvingTimeMins\": 15\r\n}"
+											}
+										},
+										"url": {
+											"raw": "{{base_url}}:{{port}}/{{api_path}}",
+											"host": [
+												"{{base_url}}"
+											],
+											"port": "{{port}}",
+											"path": [
+												"{{api_path}}"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Quiz reschedule",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2OTEyOTg0MTUsImV4cCI6MTY5MTM4NDgxNSwidHlwZSI6ImFjY2VzcyIsImVtYWlsIjoic2ViYXN3YXNoQGdtYWlsLmNvbSJ9.5aHLZruyhHWwiA4An-J10Z_JJMLkCsupjl2Iuk9QtFc",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "graphql",
+											"graphql": {
+												"query": "mutation QuizReschedule(\r\n    $quizId: Int!,\r\n    $startsAt: DateTime,\r\n    $deadline: DateTime,\r\n    $useScheduling: Boolean\r\n) {\r\n    rescheduleQuiz(\r\n        quizId: $quizId,\r\n        startsAt: $startsAt,\r\n        deadline: $deadline,\r\n        useScheduling: $useScheduling\r\n    ) {\r\n        success\r\n        message\r\n        internalMessage\r\n        statusCode\r\n    }\r\n}",
+												"variables": "{\r\n    \"quizId\": 47,\r\n    \"startsAt\": \"2023-08-07T01:15:00.000\",\r\n    \"useScheduling\": true\r\n}"
+											}
+										},
+										"url": {
+											"raw": "http://localhost:8000/graphql",
+											"protocol": "http",
+											"host": [
+												"localhost"
+											],
+											"port": "8000",
+											"path": [
+												"graphql"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "User start quiz",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2OTIyMzc0NTMsImV4cCI6MTY5MjMyMzg1MywidHlwZSI6ImFjY2VzcyIsImVtYWlsIjoic2ViYXN3YXNoQGdtYWlsLmNvbSJ9.iE3zPdL42t988pzSRTKzxtwLCcC3feTXkCNUKQfWb2s",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "graphql",
+											"graphql": {
+												"query": "mutation UserStartQuiz(\r\n    $quizId: Int!\r\n) {\r\n    userStartQuiz(quizId: $quizId) {\r\n        success\r\n        message\r\n        internalMessage\r\n        statusCode\r\n    }\r\n}",
+												"variables": "{\r\n    \"quizId\": 52\r\n}"
+											}
+										},
+										"url": {
+											"raw": "http://localhost:8000/graphql",
+											"protocol": "http",
+											"host": [
+												"localhost"
+											],
+											"port": "8000",
+											"path": [
+												"graphql"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Submit quiz",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2OTE0NjMxNzYsImV4cCI6MTY5MTU0OTU3NiwidHlwZSI6ImFjY2VzcyIsImVtYWlsIjoic2ViYXN3YXNoQGdtYWlsLmNvbSJ9.VMzZwKrFrcgmjD2eImO8zEdPsT9FXvcXUWg56ZDJNuc",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "graphql",
+											"graphql": {
+												"query": "mutation SubmitQuizAnswers(\r\n    $quizId: Int!,\r\n    $selectedOptions: [Int]\r\n) {\r\n    submitQuizAnswers(\r\n        quizId: $quizId,\r\n        selectedOptions: $selectedOptions\r\n    ) {\r\n        success\r\n        message\r\n        internalMessage\r\n        statusCode\r\n        notAnsweredQuestions\r\n    }\r\n}",
+												"variables": "{\r\n    \"quizId\": 49,\r\n    \"selectedOptions\": [\r\n        36\r\n    ]\r\n}"
+											}
+										},
+										"url": {
+											"raw": "http://localhost:8000/graphql",
+											"protocol": "http",
+											"host": [
+												"localhost"
+											],
+											"port": "8000",
+											"path": [
+												"graphql"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Questions",
+							"item": [
+								{
+									"name": "Question creation",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2OTIyODI4MDMsImV4cCI6MTY5MjM2OTIwMywidHlwZSI6ImFjY2VzcyIsImVtYWlsIjoic2ViYXN3YXNoQGdtYWlsLmNvbSJ9.zZdZ2b1_1ECMdva2ihtWgzNB_6KwY94Fjyu7npof2t8",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "graphql",
+											"graphql": {
+												"query": "mutation QuestionCreation(\r\n    $quizId: Int!,\r\n    $title: String!,\r\n    $description: String,\r\n    $score: Int!,\r\n    $options: [OptionObject]\r\n) {\r\n    createQuestion(\r\n        quizId: $quizId,\r\n        title: $title,\r\n        description: $description,\r\n        score: $score,\r\n        options: $options\r\n    ) {\r\n        success\r\n        message\r\n        internalMessage\r\n        statusCode\r\n    }\r\n}",
+												"variables": "{\r\n    \"quizId\": 53,\r\n    \"title\": \"Question 1?\",\r\n    \"score\": 100,\r\n    \"options\": [\r\n        {\r\n            \"label\": \"A\"\r\n        },\r\n        {\r\n            \"label\": \"B\",\r\n            \"isCorrect\": true\r\n        },\r\n        {\r\n            \"label\": \"C\",\r\n            \"isCorrect\": false\r\n        },\r\n        {\r\n            \"label\": \"D\",\r\n            \"isCorrect\": false\r\n        }\r\n    ]\r\n}"
+											}
+										},
+										"url": {
+											"raw": "http://localhost:8000/graphql",
+											"protocol": "http",
+											"host": [
+												"localhost"
+											],
+											"port": "8000",
+											"path": [
+												"graphql"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Question update",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2OTIyODI4MDMsImV4cCI6MTY5MjM2OTIwMywidHlwZSI6ImFjY2VzcyIsImVtYWlsIjoic2ViYXN3YXNoQGdtYWlsLmNvbSJ9.zZdZ2b1_1ECMdva2ihtWgzNB_6KwY94Fjyu7npof2t8",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "graphql",
+											"graphql": {
+												"query": "mutation QuestionUpdate(\r\n    $id: Int!,\r\n    $title: String,\r\n    $description: String,\r\n    $score: Int\r\n) {\r\n    updateQuestion(\r\n        id: $id,\r\n        title: $title,\r\n        description: $description,\r\n        score: $score\r\n    ) {\r\n        success\r\n        message\r\n        internalMessage\r\n        updatedFields \r\n        fieldsWithError {\r\n            field\r\n            error\r\n        }\r\n        statusCode\r\n    }\r\n}",
+												"variables": "{\r\n    \"id\": 40,\r\n    \"title\": \"Updated question?\",\r\n    \"description\": \"\",\r\n    \"score\": 35\r\n}"
+											}
+										},
+										"url": {
+											"raw": "http://localhost:8000/graphql",
+											"protocol": "http",
+											"host": [
+												"localhost"
+											],
+											"port": "8000",
+											"path": [
+												"graphql"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Question deletion",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2OTE0NjMxNzYsImV4cCI6MTY5MTU0OTU3NiwidHlwZSI6ImFjY2VzcyIsImVtYWlsIjoic2ViYXN3YXNoQGdtYWlsLmNvbSJ9.VMzZwKrFrcgmjD2eImO8zEdPsT9FXvcXUWg56ZDJNuc",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "graphql",
+											"graphql": {
+												"query": "mutation QuestionDelete($questionId: Int!) {\r\n    deleteQuestion(questionId: $questionId) {\r\n        success\r\n        message\r\n        internalMessage\r\n        statusCode\r\n    }\r\n}",
+												"variables": "{\r\n    \"questionId\": 10\r\n}"
+											}
+										},
+										"url": {
+											"raw": "http://localhost:8000/graphql",
+											"protocol": "http",
+											"host": [
+												"localhost"
+											],
+											"port": "8000",
+											"path": [
+												"graphql"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						},
+						{
+							"name": "Options",
+							"item": [
+								{
+									"name": "Add option to question",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2OTEwMTY4NDgsImV4cCI6MTY5MTEwMzI0OCwidHlwZSI6ImFjY2VzcyIsImVtYWlsIjoic2ViYXN3YXNoQGdtYWlsLmNvbSJ9.WFOdbdhhUN7Nnfpa_3LkwqYneW_wLZxH-q4Rhstigps",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "graphql",
+											"graphql": {
+												"query": "mutation AddOptionToQuestion(\r\n    $questionId: Int!,\r\n    $label: String!,\r\n    $isCorrect: Boolean,\r\n    $feedbackMessage: String\r\n) {\r\n    addOptionToQuestion(\r\n        questionId: $questionId,\r\n        label: $label,\r\n        isCorrect: $isCorrect,\r\n        feedbackMessage: $feedbackMessage\r\n    ) {\r\n        success\r\n        message\r\n        internalMessage\r\n        optionId\r\n        statusCode\r\n    }\r\n}",
+												"variables": "{\r\n    \"questionId\": 3,\r\n    \"label\": \"Option name\",\r\n    \"feedbackMessage\": \"Bla bla bla\",\r\n    \"isCorrect\": true\r\n}"
+											}
+										},
+										"url": {
+											"raw": "http://localhost:8000/graphql",
+											"protocol": "http",
+											"host": [
+												"localhost"
+											],
+											"port": "8000",
+											"path": [
+												"graphql"
+											]
+										}
+									},
+									"response": []
+								},
+								{
+									"name": "Set correct option",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Authorization",
+												"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2OTEwMTY4NDgsImV4cCI6MTY5MTEwMzI0OCwidHlwZSI6ImFjY2VzcyIsImVtYWlsIjoic2ViYXN3YXNoQGdtYWlsLmNvbSJ9.WFOdbdhhUN7Nnfpa_3LkwqYneW_wLZxH-q4Rhstigps",
+												"type": "text"
+											}
+										],
+										"body": {
+											"mode": "graphql",
+											"graphql": {
+												"query": "mutation SetCorrectOption(\r\n    $optionId: Int!\r\n) {\r\n    setCorrectOption(optionId: $optionId) {\r\n        success\r\n        message\r\n        internalMessage\r\n        statusCode\r\n    }\r\n}",
+												"variables": "{\r\n    \"optionId\": 8\r\n}"
+											}
+										},
+										"url": {
+											"raw": "http://localhost:8000/graphql",
+											"protocol": "http",
+											"host": [
+												"localhost"
+											],
+											"port": "8000",
+											"path": [
+												"graphql"
+											]
+										}
+									},
+									"response": []
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Queries",
+			"item": [
+				{
+					"name": "User",
+					"item": [
+						{
+							"name": "Get own account",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2OTIyMTIxNTEsImV4cCI6MTY5MjI5ODU1MSwidHlwZSI6ImFjY2VzcyIsImVtYWlsIjoic2ViYXN3YXNoQGdtYWlsLmNvbSJ9.mcYNvzxv8JLjQmCEATK2-wHG7Ic0I2VLCe7pHSnnOwM",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "graphql",
+									"graphql": {
+										"query": "query GetUserData($userId: Int!) {\r\n    user(id: $userId) {\r\n        fullName\r\n        nickname\r\n        email\r\n        createdAt\r\n        isVerified\r\n        verificationToken\r\n    }\r\n}",
+										"variables": "{\r\n    \"userId\": 44\r\n}"
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}:{{port}}/{{api_path}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"{{api_path}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get users",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2OTIyMTIxNTEsImV4cCI6MTY5MjI5ODU1MSwidHlwZSI6ImFjY2VzcyIsImVtYWlsIjoic2ViYXN3YXNoQGdtYWlsLmNvbSJ9.mcYNvzxv8JLjQmCEATK2-wHG7Ic0I2VLCe7pHSnnOwM",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "graphql",
+									"graphql": {
+										"query": "query {\r\n    getUsers(filter: {\r\n        isVerified: false,\r\n        patterns: []\r\n    }) {\r\n        id\r\n        email\r\n        nickname\r\n        fullName\r\n    }\r\n}",
+										"variables": "{}"
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}:{{port}}/{{api_path}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"{{api_path}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Quiz",
+					"item": [
+						{
+							"name": "Get quiz",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2OTIzMTI0ODAsImV4cCI6MTY5MjM5ODg4MCwidHlwZSI6ImFjY2VzcyIsImVtYWlsIjoic2ViYXN3YXNoQGdtYWlsLmNvbSJ9.RW47MXbz1jehTzxaQpe_94ZaTbUMTxBCD3qOK9SlFw4",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "graphql",
+									"graphql": {
+										"query": "query GetQuiz($quizId: Int!) {\r\n    quiz(id: $quizId) {\r\n        id\r\n        title\r\n        summary\r\n        isActive\r\n        useScheduling\r\n        isPublic\r\n        startsAt\r\n        deadline\r\n        creator {\r\n            fullName\r\n            nickname\r\n            email\r\n        }\r\n        questions {\r\n            title\r\n            score\r\n            options {\r\n                id\r\n                label\r\n                feedbackMessage\r\n                isCorrect\r\n            }\r\n        }\r\n    }\r\n}",
+										"variables": "{\r\n    \"quizId\": 53\r\n}"
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}:{{port}}/{{api_path}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"{{api_path}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get my quizzes",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2OTIyMTIxNTEsImV4cCI6MTY5MjI5ODU1MSwidHlwZSI6ImFjY2VzcyIsImVtYWlsIjoic2ViYXN3YXNoQGdtYWlsLmNvbSJ9.mcYNvzxv8JLjQmCEATK2-wHG7Ic0I2VLCe7pHSnnOwM",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "graphql",
+									"graphql": {
+										"query": "query {\r\n    myQuizzes {\r\n        id\r\n        title\r\n        questions {\r\n            title\r\n            options {\r\n                label\r\n            }\r\n        }\r\n    }\r\n}",
+										"variables": "{\r\n    \r\n}"
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}:{{port}}/{{api_path}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"{{api_path}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get available quizzes",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2OTIyMTIxNTEsImV4cCI6MTY5MjI5ODU1MSwidHlwZSI6ImFjY2VzcyIsImVtYWlsIjoic2ViYXN3YXNoQGdtYWlsLmNvbSJ9.mcYNvzxv8JLjQmCEATK2-wHG7Ic0I2VLCe7pHSnnOwM",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "graphql",
+									"graphql": {
+										"query": "query {\r\n    availableQuizzes {\r\n        title\r\n    }\r\n}",
+										"variables": "{\r\n    \r\n}"
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}:{{port}}/{{api_path}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"{{api_path}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Get quiz solving detail",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2OTIyMzc0NTMsImV4cCI6MTY5MjMyMzg1MywidHlwZSI6ImFjY2VzcyIsImVtYWlsIjoic2ViYXN3YXNoQGdtYWlsLmNvbSJ9.iE3zPdL42t988pzSRTKzxtwLCcC3feTXkCNUKQfWb2s",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "graphql",
+									"graphql": {
+										"query": "query GetQuizSolvingDetail($quizId: Int!) {\r\n    quizSolvingDetail(quizId: $quizId) {\r\n        startedAt\r\n    }\r\n}",
+										"variables": "{\r\n    \"quizId\": 52\r\n}"
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}:{{port}}/{{api_path}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"{{api_path}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Question",
+					"item": [
+						{
+							"name": "Get question",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2OTIyMjA0NzMsImV4cCI6MTY5MjMwNjg3MywidHlwZSI6ImFjY2VzcyIsImVtYWlsIjoic2ViYXN3YXNoQGdtYWlsLmNvbSJ9.NdDjbco1_xsGuW2_aUWnFsq6Zt6odsyqlQtfj6Gyhk4",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "graphql",
+									"graphql": {
+										"query": "query GetQuestion($questionId: Int!) {\r\n    question(id: $questionId) {\r\n        title\r\n        options {\r\n            label\r\n            isCorrect\r\n            feedbackMessage\r\n        }\r\n    }\r\n}",
+										"variables": "{\r\n    \"questionId\": 12\r\n}"
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}:{{port}}/{{api_path}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"{{api_path}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Options",
+					"item": [
+						{
+							"name": "Get option",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2OTIyMjA0NzMsImV4cCI6MTY5MjMwNjg3MywidHlwZSI6ImFjY2VzcyIsImVtYWlsIjoic2ViYXN3YXNoQGdtYWlsLmNvbSJ9.NdDjbco1_xsGuW2_aUWnFsq6Zt6odsyqlQtfj6Gyhk4",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "graphql",
+									"graphql": {
+										"query": "query GetOption($optionId: Int!) {\r\n    option(id: $optionId) {\r\n        label\r\n        isCorrect\r\n        feedbackMessage\r\n        question {\r\n            title\r\n            score\r\n        }\r\n    }\r\n}",
+										"variables": "{\r\n    \"optionId\": 38\r\n}"
+									}
+								},
+								"url": {
+									"raw": "{{base_url}}:{{port}}/{{api_path}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"{{api_path}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost",
+			"type": "string"
+		},
+		{
+			"key": "port",
+			"value": "8000",
+			"type": "string"
+		},
+		{
+			"key": "api_path",
+			"value": "graphql",
+			"type": "string"
+		}
+	]
+}
